@@ -11,8 +11,6 @@ import pandas as pd
 from scipy.spatial import distance_matrix
 
 
-#sys.path.append("C:\Users\Cobal\Desktop\ZERNIKE\Codice_and_surface\Codice")
-
 import ZernikeFunc as ZF
 import SurfaceFunc as SF
 
@@ -36,29 +34,6 @@ verso = float(1)
 respath = "..\RRM2\cluster2\positive"
 name_ = "Cluster 2 of RRM2"
 Npoint = int(1)
-
-#sys.argv[1] = pdb_file
-#sys.argv[2] = verso
-#sys.argv[3] = respath
-#sys.argv[4] = name_
-#sys.argv[5] = Npoint
-
-#if(len(sys.argv) != 6):
-#	print("Error! Please insert:")
-#	print("python SurfaceScreening_general dmsfile  verso  resdir name Npoint")
-#	print("dmsfile, the surface file;")
-#	print("verso, 1 for 'up' orientation of the patch, -1 for 'down';")
-#	print("resdir, the directory where to save the outputs;")
-#	print("name, a string to specify the output (i.e. pdb code);")
-#	print("Npoint, the point interval for the screening, i.e. 1 for all points, 10 for one point every 10 points, etc.")
-#	exit()
-
-#pdb_file = sys.argv[1]
-#verso = float(sys.argv[2])
-#respath = sys.argv[3]
-#name_ = sys.argv[4]
-#Npoint = int(sys.argv[5])
-
 
 
 if(verso == 1):
