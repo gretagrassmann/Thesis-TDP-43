@@ -21,14 +21,14 @@ PLOT = 0
 Npixel = 25  # the plane edge in pixels...
 
 Daa = 3.  # the maximum distance between antigen and antibody binding site atoms..
-Rs = 1.  # the radius of the sphere that includes the patch..
+Rs = 6.  # the radius of the sphere that includes the patch..
 Dpp = 1.  # the distance between points of the same patch (needed to remove islands)
 
-ZOrder = 5  # the Zernike expansion order..
+ZOrder = 20  # the Zernike expansion order..
 
 pdb_file = "..\RRM2\cluster2.dms"
 verso = float(1)
-#respath = "..\RRM2\cluster2"
+respath = "..\RRM2\cluster2\positive_new_sampling"
 name_ = "Cluster 2 of RRM2 EXPERIMENT"
 Npoint = int(1)
 
@@ -51,7 +51,7 @@ except:
     exit()
 
 lag = len(surf_["x"])
-
+print(lag)
 
 surf = np.zeros((lag, 6))
 surf[:, :] = surf_[["x", "y", "z", "Nx", "Ny", "Nz"]]
@@ -76,12 +76,11 @@ for i in index_possible_area:
         prod = prod*patch[j,3:6]
     prod_scal_patch = sum(prod) #QUESTO MI DICE QUANTO LA PATCH E' PIATTA
 
-    if abs(prod_scal_patch) > 1.0e-8: # SALVO GLI INDICI DEI PUNTI DOVE SERVE CAMPIONAMENTO PIU' FITTO
-        slope_index = np.zeros((len(patch)))
+    if abs(prod_scal_patch) > 1.0e-18: # SALVO GLI INDICI DEI PUNTI DOVE SERVE CAMPIONAMENTO PIU' FITTO
+        plane_index = np.zeros((len(patch)))
         for k in range(len(patch)):
-            slope_index[k] = np.where((surf[:,0] == patch[k,0])&(surf[:,1] == patch[k,1])&(surf[:,2] == patch[k,2]))[0]
+            plane_index[k] = np.where((surf[:,0] == patch[k,0])&(surf[:,1] == patch[k,1])&(surf[:,2] == patch[k,2]))[0]
 
-        index_possible_area = [i for i in index_possible_area if i not in slope_index]
+        index_possible_area = [int(i) for i in index_possible_area if i not in plane_index]
 
-
-###     DA RIGA 84 DI SurfaceScreening_general.py
+np.savetxt("{}\index_possible_area.txt".format(respath), index_possible_area)
