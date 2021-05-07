@@ -61,32 +61,27 @@ surf_obj = SF.Surface(surf[:, :], patch_num=0, r0=Rs, theta_max=45)
 ltmp = np.shape(surf)[0]
 
 index_possible_area = np.arange(ltmp)[::Npoint]  #MM]
-ltmp = len(index_possible_area)
+
 ###     QUA DEVO FARE LA COSA DEL PRODOTTO SCALARE, E POI DIRE IN ltmp
 ###     QUANTI PUNTI STO GUARDANDO
 
-
 for i in index_possible_area:
+    ltmp = len(index_possible_area)
     sys.stderr.write(("\r Processing point %i" % (i)))
     sys.stderr.flush()
-    patch, mask = surf_obj.BuildPatch(point_pos=index_possible_area[i], Dmin=.5)
+    patch, mask = surf_obj.BuildPatch(point_pos=i, Dmin=.5)
     surf_obj.real_br = mask
     prod = patch[0,3:6]
     for j in range(1,len(patch)):
         prod = prod*patch[j,3:6]
     prod_scal_patch = sum(prod) #QUESTO MI DICE QUANTO LA PATCH E' PIATTA
 
-    if abs(prod_scal_patch) > 0.01: # SALVO GLI INDICI DEI PUNTI DOVE SERVE CAMPIONAMENTO PIU' FITTO
+    if abs(prod_scal_patch) > 1.0e-8: # SALVO GLI INDICI DEI PUNTI DOVE SERVE CAMPIONAMENTO PIU' FITTO
         slope_index = np.zeros((len(patch)))
         for k in range(len(patch)):
             slope_index[k] = np.where((surf[:,0] == patch[k,0])&(surf[:,1] == patch[k,1])&(surf[:,2] == patch[k,2]))[0]
 
         index_possible_area = [i for i in index_possible_area if i not in slope_index]
 
-
-###     index_possible_area DEVO DEFINIRLO IN MANIERA DIVERSA,
-###     METTENDOCI GLI INDICI DEI PUNTI CHE NON HO ELIMINATO CON IL PRODOTTO SCALARE
-
-#index_possible_area =
 
 ###     DA RIGA 84 DI SurfaceScreening_general.py
