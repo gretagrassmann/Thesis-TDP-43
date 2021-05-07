@@ -21,28 +21,22 @@ PLOT = 0
 Npixel = 25  # the plane edge in pixels...
 
 Daa = 3.  # the maximum distance between antigen and antibody binding site atoms..
-Rs = 6.  # the radius of the sphere that includes the patch..
 Dpp = 1.  # the distance between points of the same patch (needed to remove islands)
 
 ZOrder = 20  # the Zernike expansion order..
 
 pdb_file = "..\RRM2\cluster2.dms"
-verso = float(1)
 respath = "..\RRM2\cluster2\positive_new_sampling"
 name_ = "Cluster 2 of RRM2 EXPERIMENT"
 Npoint = int(1)
 
+Rs_select = 4.  # the radius of the sphere that includes the patch..
+Max_scalar  = 1.e-60
 
-if (verso == 1):
-    ver = "up"
-elif (verso == -1):
-    ver = "down"
 
 # loading surface file..
 
 surf_name = pdb_file
-
-print("Processing protein %s with verso: (%s)\n" % (name_, verso))
 
 try:
     surf_ = pd.read_csv(surf_name)
@@ -56,11 +50,12 @@ print(lag)
 surf = np.zeros((lag, 6))
 surf[:, :] = surf_[["x", "y", "z", "Nx", "Ny", "Nz"]]
 
-surf_obj = SF.Surface(surf[:, :], patch_num=0, r0=Rs, theta_max=45)
+surf_obj = SF.Surface(surf[:, :], patch_num=0, r0=Rs_select, theta_max=45)
 
 ltmp = np.shape(surf)[0]
 
-index_possible_area = np.arange(ltmp)[::Npoint]  #MM]
+index_possible_area = np.arange(1,ltmp,3)
+#index_possible_area = np.arange(ltmp)[:Npoint]  #MM]
 
 ###     QUA DEVO FARE LA COSA DEL PRODOTTO SCALARE, E POI DIRE IN ltmp
 ###     QUANTI PUNTI STO GUARDANDO
@@ -75,12 +70,14 @@ for i in index_possible_area:
     for j in range(1,len(patch)):
         prod = prod*patch[j,3:6]
     prod_scal_patch = sum(prod) #QUESTO MI DICE QUANTO LA PATCH E' PIATTA
-
-    if abs(prod_scal_patch) > 1.0e-18: # SALVO GLI INDICI DEI PUNTI DOVE SERVE CAMPIONAMENTO PIU' FITTO
+    if abs(prod_scal_patch) > Max_scalar: # SALVO GLI INDICI DEI PUNTI DOVE SERVE CAMPIONAMENTO PIU' FITTO
         plane_index = np.zeros((len(patch)))
         for k in range(len(patch)):
-            plane_index[k] = np.where((surf[:,0] == patch[k,0])&(surf[:,1] == patch[k,1])&(surf[:,2] == patch[k,2]))[0]
+            if k != i:
+                plane_index[k] = np.where((surf[:,0] == patch[k,0])&(surf[:,1] == patch[k,1])&(surf[:,2] == patch[k,2]))[0]
 
         index_possible_area = [int(i) for i in index_possible_area if i not in plane_index]
+
+
 
 np.savetxt("{}\index_possible_area.txt".format(respath), index_possible_area)
