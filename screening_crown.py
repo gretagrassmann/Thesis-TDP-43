@@ -29,7 +29,7 @@ Npoint = int(1)
 
 Rs_select = 4.  # the radius of the sphere that includes the patch..
 Max_scalar  = 1.e-60
-
+R_crown = 1.e60
 
 # loading surface file..
 
@@ -66,15 +66,14 @@ for i in index_possible_area:
         for k in range(len(patch)):
             point_index[k] = np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
             d2[k] = (surf[int(point_index[k]),0] - surf[i,0])**2 + (surf[int(point_index[k]),1] - surf[i,1])**2 + (surf[int(point_index[k]),2] - surf[i,2])**2
-
-            if d2[k] < 5: #SALVO I PUNTI NEL CENTRO
+            #print("d2[{}]=".format(k), d2[k])
+###CAMBIA DA > A <
+            if d2[k] < abs(prod_scal_patch)*R_crown: #SALVO I PUNTI NEL CENTRO
                 center_index.append(point_index[k])
-
 
 
         # STO TENENDO COME PUNTI DI ZERNIKE ANCHE QUELLI NELLA CORONA DELLE PARTI PIATTE
         index_possible_area = [int(i) for i in index_possible_area if i not in center_index]
-    print(len(index_possible_area))
 
 
-#np.savetxt("{}\index_possible_area.txt".format(respath), index_possible_area)
+np.savetxt("{}\index_possible_area.txt".format(respath), index_possible_area)
