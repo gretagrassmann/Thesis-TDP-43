@@ -5,9 +5,19 @@ import numpy as np
 import math
 import statistics
 
+def find_nearest_vector2D(array,value):
+    dist_2 = np.sum((array - value)**2, axis=1)
+    return np.argmin(dist_2)
+
+
+#def find_nearest_vector(array,value):
+#    idx = np.array([np.linalg.norm(x+y+z) for (x,y,z) in array-value]).argmin()
+#    return idx
+
 def find_nearest_vector(array,value):
-    idx = np.array([np.linalg.norm(x+y+z) for (x,y,z) in array-value]).argmin()
-    return idx
+    array = np.asarray(array)
+    dist_3 = np.sum((array - value)**2, axis=1)
+    return np.argmin(dist_3)
 
 def ZernikeCoefficients(index_possible_area, surf_obj, verso, Npixel, ZOrder, respath, kind, alpha):
     """
@@ -62,12 +72,12 @@ def ZernikeCoefficients(index_possible_area, surf_obj, verso, Npixel, ZOrder, re
 
     else:
         if verso == 1:
-            np.savetxt("{}/zernike/zernike_positive/zernike_alpha_{}_point_{}.dat".format(respath, alpha, ltmp), res_inv_,fmt="%.4e")
+            np.savetxt("{}/zernike/zernike_positive/zernike_alpha_{}.dat".format(respath, alpha), res_inv_,fmt="%.4e")
         else:
-            np.savetxt("{}/zernike/zernike_negative/zernike_alpha_{}_point_{}.dat".format(respath, alpha, ltmp), res_inv_,fmt="%.4e")
+            np.savetxt("{}/zernike/zernike_negative/zernike_alpha_{}.dat".format(respath, alpha), res_inv_,fmt="%.4e")
 
 
-    return(res_inv_)
+    return()
 
 
 def CosScanning(surf, surf_obj, Rs_select, alpha, step, respath):
@@ -81,7 +91,6 @@ def CosScanning(surf, surf_obj, Rs_select, alpha, step, respath):
         sys.stderr.write(("\r Processing point {} out of {}".format(i, ltmp)))
         sys.stderr.flush()
         patch, mask = surf_obj.BuildPatch(point_pos=i, Dmin=.5)
-
         if len(patch) <= 1:
             mean_cos = 1
         else:
@@ -111,7 +120,6 @@ def CosScanning(surf, surf_obj, Rs_select, alpha, step, respath):
         np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
         if patch_center.size == 0:
             patch_center = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
-
         center_index = []
         for k in range(len(patch)):
             # point_index[k] = \
@@ -130,10 +138,10 @@ def CosScanning(surf, surf_obj, Rs_select, alpha, step, respath):
         # index_possible_area = [int(i) for i in index_possible_area if i not in center_index]
     index_possible_area = sorted(index_possible)
 
-    np.savetxt("{}\index\index_possible_area_R_s_{}_alpha_{}_step_{}_points_{}.txt".format(respath,Rs_select, alpha, step, len(index_possible_area)), index_possible_area)
+    np.savetxt("{}\index\index_possible_area_R_s_{}_alpha_{}_step_{}.txt".format(respath,Rs_select, alpha, step), index_possible_area)
     print("\r number of points for R_s={},alpha={},step={} =".format(Rs_select,alpha,step), len(index_possible_area))
 
-    return(index_possible_area)
+    return()
 
 
 def PCAgrid(x):
