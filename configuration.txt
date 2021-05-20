@@ -1,0 +1,13 @@
+Rs_select = 2  
+R_zernike = 6
+
+alpha = [.5, .6, .7, .8, .9, 1., 1.1, 1.2]
+
+fragment = 208
+cluster = 1
+
+step = 1
+
+verso = float(1)
+
+Npoint = int(1)
