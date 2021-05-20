@@ -6,12 +6,13 @@
 ### Table of contents:
   * [Introduction](#introduction)
   * [Molecular dynamics simulations](#molecular-dynamics-simulations)
-    + [SIMULATION_ANALYSIS.PY](#simulation_analysis.py)
-    + [CLUSTER.PY](#cluster.py)
+    + [Simulation analysis.py](#simulation-analysis.py)
+    + [Cluster.py](#cluster.py)
   * [2D Zernike expansion](#2D-zernike-expansion)  
-    + [COMPLETE.PY](#complete.py)
-    + [MY_FUNCTIONS.PY](#my_functions.py)
-    + [SCREENING_PLOT.PY](#screening_plot.py)
+    + [Complete.py](#complete.py)
+    + [My functions.py](#my-functions.py)
+    + [Pca comparison.py](#pca-comparison.py)
+    + [Screening plot.py](#screening-plot.py)
 - [DISCLAIMER](#disclaimer)  
 - [CONTACTS](#contacts)
 
@@ -46,7 +47,7 @@ Each simulation was analyzed, using the **GROMACS** commands and the following c
 * ***simulation_analysis.py***
 * ***cluster.py***
 
-#### SIMULATION_ANALYSIS.PY
+#### Simulation analysis.py
 This code is implemented to study the equilibration phase of the simulation and the resulting trajectory. It can be used to visualize
 * The *potential energy* minimization during equilibration.
 * The *temperature* equilibration during thermalization.
@@ -64,7 +65,7 @@ With **GROMACS** we implement a Principal Component Analysis (PCA) of the trajec
 
 As a next step, we can look for the most representative molecule's conformations, using the code described in the next Section.
 
-#### CLUSTER.PY
+#### Cluster.py
 This code is implemented to find the most representative conformations, by doing a *k*-cluster analysis of the PCA of the trajectory of a molecule.<br />
 The best value *K* for *k* is given by the minimization of the silhouette coefficient.<br />
 The code allows for the visualization, for the selected *K* clusters, of both the silhouette plots for each cluster and the *K*-clustering of the scatter plot
@@ -74,14 +75,26 @@ are taken as the most representative configurations of the molecule. <br />
 To study these configurations we can employ the Zernike method.
 
 ### 2D Zernike expansion
+All the parameters that control this part of the analysis are defined in ***configuration.txt***, which includes:
+* *Rs_select*: the radius of the sphere used to determine the patch whose roughness we are going to study.
+* *R_zernike*: the radius of the sphere used to determine the patch whose shape we will reconstruct with the Zernike method.
+* *alpha*: a list of the possible values of the parameter determining the ratio between *Rs_select* and *R_c*.<br />
+*R_c* is used to determine on how many points we are going to build the patches to implement the Zernike method: given a patch of radius *Rs_select*, the points closer then *R_c* to its center will not be considered as centers for the patches of radius *R_zernike* that we are going to reconstruct with the Zernike method*. Since it is defined as *R_c=Rs_select\*mean_cosine\*alpha*, where *mean_cosine* is the average value of the cosines between the vectors normal to the patch, *R_c* is smaller the more rough the patch is. 
+* *fragment*: the name of the directory corresponding to the studied fragment.
+* *cluster*: the number of the studied centroid (i.e., one of the representative configurations).
+* *step*: every how many points we build a patch whose roughness we want to study.
+* *verso*: orientatio of the cone used to build the Zernike patches.<br />
+1 compared to 1 -> shape similarity <br />
+1 compared to -1 -> shape complementarity
+* *Npoint*: every how many points we build a patch whose Zernike reconstruction we want to study.
 
-#### COMPLETE.PY
+#### Complete.py
 
-#### MY_FUNCTIONS.PY
+#### My functions.py
 
-#### PCA_COMPARISON.PY
+#### Pca comparison.py
 
-#### SCREENING_PLOT.PY
+#### Screening plot.py
 
 
 
