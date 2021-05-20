@@ -89,13 +89,30 @@ All the parameters that control this part of the analysis are defined in ***conf
 * *Npoint*: every how many points we build a patch whose Zernike reconstruction we want to study.
 
 #### Complete.py
+This code is divided in four steps:
+1. Calculation of the Zernike descriptors of all the possible points in the surface, defined with *R_zernike*.
+2. Calculation of the roughness (i.e., the mean cosine value) for all these possible patches.
+3. Evaluation of the points to consider for the Zernike method for all the values selected in *alpha*.
+4. Calculation of the Zernike coefficients for each screening obtained in the previous step.
 
 #### My functions.py
+Here are defined some of the functions used in ***complete.py***.
 
 #### Pca comparison.py
+* This code starts by doing a PCA of the Zernike coefficients obtained in step 1. of ***complete.py***, and calulating the centroid *c_tot* and the inertia *in_tot*
+of the founded cluster.<br />
+* Then, for each value *alpha'* contained in *alpha*:
+  * It projects on the resulting first two principal components, the Zernike coefficients obtained in step 4. of ***complete.py***.
+  * It calculates the centroid *c_alpha'* and the inertia *in_alpha'* of this cluster.
+  * It calcuates the value of the loss function *Loss(alpha')=(c_tot-c_alpha')\*(in_tot-in_alpha')\*n(alpha')*, where *n(alpha')* is the number of points found in the step 3. of ***complete.py***.
+* Finally, it plots *Loss(alpha')* as a function of the values in *alpha*.<br />
+
+The value *ALPHA* that results in the lowest value of *Loss(alpha')* is the best one.
+
 
 #### Screening plot.py
-
+This code takes the Zernike representation obtained with *ALPHA* and produces a 3D representation of the total points of the surface (in blu) and the one that are considered
+as centers to build the patches for the Zernike representation.
 
 
 ## DISCLAIMER
