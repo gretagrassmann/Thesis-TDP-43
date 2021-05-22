@@ -106,8 +106,8 @@ Then it defines a grid and counts the percentage of points falling in each cell.
   * **2.2:** It represent this cluster in polar coordinates, together with the one derived at the beginning for all the surface's points.
   * **2.3:** It employs the same grid and counts the number of points that fall in each cell and then considers for each cell the ratio between the counted points for that *alpha'* value and the number of total surface's points.
   * **2.4:** As a next step it calulates the Pearson correlation coefficient between the percentages of points per cell calulated in step **1.** and the ones obtained in step **2.3.**.
-  * It calcuates the value of the reward function *Reward(alpha')=Pearson(alpha')\*n(alpha')*, where *n(alpha')* is the ratio between the number of points found in the step 3. of ***complete.py*** and the total number of points of the surface.
-* Finally, it plots *Reward(alpha')* as a function of the values in *alpha*.<br />
+  * **2.4:** It calcuates the value of the reward function *Reward(alpha')=Pearson(alpha')\*n(alpha')*, where *n(alpha')* is the ratio between the number of points found in the step 3. of ***complete.py*** and the total number of points of the surface.
+* **3:** Finally, it plots *Reward(alpha')* as a function of the values in *alpha*.<br />
 
 The value *ALPHA* that results in the highest value of *Reward(alpha')* is the best one.
 
