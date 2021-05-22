@@ -1,10 +1,6 @@
 import os, sys
 import numpy as np
-import scipy as sp
-import matplotlib.pyplot as mpl
-import math
 import pandas as pd
-from scipy.spatial import distance_matrix
 import matplotlib.pyplot as plt
 
 import ZernikeFunc as ZF
@@ -16,7 +12,9 @@ with open('configuration.txt') as f:
     for line in f:
         exec(line)
 
-alpha = [.01]
+alpha = [1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95 ]
+#alpha = [1.3, 1.4, 1.6, 1.7, 1.8, 1.9]
+
 #R_zernike = 6
 #Rs_select = 2
 #fragment = 208
@@ -57,6 +55,7 @@ if o == "y":
     ltmp = len(index_all_possible_area)
     zernike_sampling_inv_a = np.zeros((121, ltmp))
 
+    all_patches = []
     for i in range(ltmp):
         sys.stderr.write("\r Processing %i out of %i point" % (i, ltmp))
         sys.stderr.flush()
@@ -143,11 +142,11 @@ if o == "y":
 
     ##########################   ZERNIKE PER I DIVERSI SCREENING ###########################
 print("Vuoi fare ZERNIKE per diversi valori di alpha? y o n?")
-ooo = input()
+#ooo = input()
+ooo = "y"
 if ooo == "y":
 
     for a in alpha:
-        print(a)
         with open("{}\index\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath,Rs_select, a)) as f:
             index_possible_area = [int(float(x)) for x in f.read().split()]
 
@@ -157,7 +156,7 @@ if ooo == "y":
         zernike_sampling_inv_a = np.zeros((121, ltmp))
 
         for i in range(ltmp):
-            sys.stderr.write("\r Processing {} out of {} point for alpha= {}".format(i, ltmp, a))
+            sys.stderr.write("\r Processing {} out of {} point for Zernike, alpha= {}".format(i, ltmp, a))
             sys.stderr.flush()
             # finding antigen patch, plane and zernike descriptors..
 
