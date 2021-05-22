@@ -4,6 +4,9 @@ import os, sys
 import numpy as np
 import math
 import statistics
+from sklearn.cluster import KMeans
+
+        ################ POINTS SCREENING ########################
 
 def find_nearest_vector2D(array,value):
     dist_2 = np.sum((array - value)**2, axis=1)
@@ -88,6 +91,51 @@ def NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respat
     print("\r number of points for R_s={},alpha={},step={} =".format(Rs_select,alpha,step), len(index_possible_area))
 
     return()
+
+        ##################### LOSS FUNCTION MINIMIZATION    #########################
+
+def cart2polar(pca):
+    clusterer = KMeans(n_clusters=1, random_state=10)
+    cluster_labels_total = clusterer.fit_predict(pca)
+    centroid = clusterer.cluster_centers_
+    x_centered = pca[:,0] - centroid[0, 0]
+    y_centered = pca[:,1] - centroid[0, 1]
+
+    radius= []
+    theta = []
+    for i in range(len(x_centered)):
+        radius.append(math.sqrt(x_centered[i] * x_centered[i] + y_centered[i] * y_centered[i]))
+        #    theta.append(math.atan(y_tot_centered[i]/x_tot_centered[i])*180/math.pi)
+        theta.append(math.atan2(x_centered[i], y_centered[i]) * 180 / math.pi)
+
+    return(theta, radius)
+
+
+def PCA(x):
+    X = x.transpose()
+    cov_mat = np.cov(X, rowvar=False)
+    # Calculating Eigenvalues and Eigenvectors of the covariance matrix
+    eigen_values, eigen_vectors = np.linalg.eigh(cov_mat)
+    # sort the eigenvalues in descending order
+    sorted_index = np.argsort(eigen_values)[::-1]
+    sorted_eigenvalue = eigen_values[sorted_index]
+    # similarly sort the eigenvectors
+    sorted_eigenvectors = eigen_vectors[:, sorted_index]
+
+    # select the first n eigenvectors, n is desired dimension
+    # of our final reduced data.
+    n_components = 2  # you can select any number of components.
+    eigenvector_subset = sorted_eigenvectors[:, 0:n_components]
+
+    # Transform the data
+    # X_reduced = np.dot(eigenvector_subset.transpose(), X_meaned.transpose()).transpose()
+    X_reduced = np.dot(eigenvector_subset.transpose(), X.transpose()).transpose()
+
+    return(X_reduced, eigenvector_subset)
+
+
+
+
 
 
 ##########################  INUTILI ###################################################
