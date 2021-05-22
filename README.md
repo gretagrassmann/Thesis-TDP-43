@@ -11,7 +11,7 @@
   * [2D Zernike expansion](#2D-zernike-expansion)  
     + [Complete.py](#complete.py)
     + [My functions.py](#my-functions.py)
-    + [Pca comparison.py](#pca-comparison.py)
+    + [Polar pca comparison.py](#polar-pca-comparison.py)
     + [Screening plot.py](#screening-plot.py)
 - [DISCLAIMER](#disclaimer)  
 - [CONTACTS](#contacts)
@@ -98,16 +98,18 @@ This code is divided in four steps:
 #### My functions.py
 Here are defined some of the functions used in ***complete.py***.
 
-#### Pca comparison.py
-* This code starts by doing a PCA of the Zernike coefficients obtained in step 1. of ***complete.py***, and calulating the centroid *c_tot* and the inertia *in_tot*
-of the founded cluster.<br />
-* Then, for each value *alpha'* contained in *alpha*:
-  * It projects on the resulting first two principal components, the Zernike coefficients obtained in step 4. of ***complete.py***.
-  * It calculates the centroid *c_alpha'* and the inertia *in_alpha'* of this cluster.
-  * It calcuates the value of the loss function *Loss(alpha')=(c_tot-c_alpha')\*(in_tot-in_alpha')\*n(alpha')*, where *n(alpha')* is the number of points found in the step 3. of ***complete.py***.
-* Finally, it plots *Loss(alpha')* as a function of the values in *alpha*.<br />
+#### Polar pca comparison.py
+* **1:** This code starts by doing a PCA of the Zernike coefficients obtained in step 1. of ***complete.py*** and representing the projection on the first two eigenvectors in polar coordinates.<br />
+Then it defines a grid and counts the percentage of points falling in each cell.
+* **2:** Then, for each value *alpha'* contained in *alpha*:
+  * **2.1** It projects on these first two eigenvectors the Zernike coefficients obtained in step 4. of ***complete.py***.
+  * **2.2:** It represent this cluster in polar coordinates, together with the one derived at the beginning for all the surface's points.
+  * **2.3:** It employs the same grid and counts the number of points that fall in each cell and then considers for each cell the ratio between the counted points for that *alpha'* value and the number of total surface's points.
+  * **2.4:** As a next step it calulates the Pearson correlation coefficient between the percentages of points per cell calulated in step **1.** and the ones obtained in step **2.3.**.
+  * It calcuates the value of the reward function *Reward(alpha')=Pearson(alpha')\*n(alpha')*, where *n(alpha')* is the ratio between the number of points found in the step 3. of ***complete.py*** and the total number of points of the surface.
+* Finally, it plots *Reward(alpha')* as a function of the values in *alpha*.<br />
 
-The value *ALPHA* that results in the lowest value of *Loss(alpha')* is the best one.
+The value *ALPHA* that results in the highest value of *Reward(alpha')* is the best one.
 
 
 #### Screening plot.py
