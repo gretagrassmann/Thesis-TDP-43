@@ -12,7 +12,7 @@ with open('configuration.txt') as f:
     for line in f:
         exec(line)
 
-alpha = [1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95 ]
+alpha = [1.25, 1.3, 1.35, 1.4, 1.45]
 #alpha = [1.3, 1.4, 1.6, 1.7, 1.8, 1.9]
 
 #R_zernike = 6
@@ -132,71 +132,51 @@ if o == "y":
 
     ################################ SCREENING PER DIVERSI VALORI DEI PARAMETRI
 
-#print("Vuoi fare lo screening per diversi valori di alpha? y o n?")
-#oo = input()
-#if oo == "y":
-#    for i in alpha:
-#        index_possible_area = my_functions.CosScanning(surf,surf_obj_scan,Rs_select,i,step,respath)
-
-
 
     ##########################   ZERNIKE PER I DIVERSI SCREENING ###########################
-print("Vuoi fare ZERNIKE per diversi valori di alpha? y o n?")
-#ooo = input()
-ooo = "y"
-if ooo == "y":
-
-    for a in alpha:
-        with open("{}\index\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath,Rs_select, a)) as f:
-            index_possible_area = [int(float(x)) for x in f.read().split()]
+#print("Vuoi fare ZERNIKE per diversi valori di alpha? y o n?")
+##ooo = input()
+#ooo = "y"
+#if ooo == "y":
+#    for a in alpha:
+#        with open("{}\index\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath,Rs_select, a)) as f:
+#            index_possible_area = [int(float(x)) for x in f.read().split()]
 
        # zernike = my_functions.ZernikeCoefficients(index_possible_area,surf_obj,verso,Npixel,ZOrder, respath, "non_total", alpha[0])
-        ltmp = len(index_possible_area)
-
-        zernike_sampling_inv_a = np.zeros((121, ltmp))
-
-        for i in range(ltmp):
-            sys.stderr.write("\r Processing {} out of {} point for Zernike, alpha= {}".format(i, ltmp, a))
-            sys.stderr.flush()
+#        ltmp = len(index_possible_area)
+#        zernike_sampling_inv_a = np.zeros((121, ltmp))
+#        for i in range(ltmp):
+#            sys.stderr.write("\r Processing {} out of {} point for Zernike, alpha= {}".format(i, ltmp, a))
+#            sys.stderr.flush()
             # finding antigen patch, plane and zernike descriptors..
-
-            patch, mask = surf_obj.BuildPatch(point_pos=index_possible_area[i], Dmin=.5)
-            surf_obj.real_br = mask
-
-            rot_patch, rot_ag_patch_nv = surf_obj.PatchReorientNew(patch, verso)
-
-            z = surf_obj.FindOrigin(rot_patch)
-            plane, weigths, dist_plane, thetas = surf_obj.CreatePlane(patch=rot_patch, z_c=z, Np=Npixel)
-            new_plane = plane.copy()
-            new_plane___ = plane.copy()
-
-            if (np.shape(rot_patch)[1] == 4):
-
-                new_plane_re = surf_obj.FillTheGap_everywhere(plane_=np.real(plane))
-                new_plane_im = surf_obj.FillTheGap_everywhere(plane_=np.imag(plane))
-
-                new_plane_re_ = surf_obj.EnlargePixels(new_plane_re)
-                new_plane_im_ = surf_obj.EnlargePixels(new_plane_im)
-
-                new_plane_ = new_plane_re_ + 1j * new_plane_im_ / np.max(np.abs(new_plane_im_))
-            else:
-                new_plane = surf_obj.FillTheGap_everywhere(plane_=plane)
+#            patch, mask = surf_obj.BuildPatch(point_pos=index_possible_area[i], Dmin=.5)
+#            surf_obj.real_br = mask
+#            rot_patch, rot_ag_patch_nv = surf_obj.PatchReorientNew(patch, verso)
+#            z = surf_obj.FindOrigin(rot_patch)
+#            plane, weigths, dist_plane, thetas = surf_obj.CreatePlane(patch=rot_patch, z_c=z, Np=Npixel)
+#            new_plane = plane.copy()
+#            new_plane___ = plane.copy()
+#            if (np.shape(rot_patch)[1] == 4):
+#                new_plane_re = surf_obj.FillTheGap_everywhere(plane_=np.real(plane))
+#                new_plane_im = surf_obj.FillTheGap_everywhere(plane_=np.imag(plane))
+#                new_plane_re_ = surf_obj.EnlargePixels(new_plane_re)
+#                new_plane_im_ = surf_obj.EnlargePixels(new_plane_im)
+#                new_plane_ = new_plane_re_ + 1j * new_plane_im_ / np.max(np.abs(new_plane_im_))
+#            else:
+#                new_plane = surf_obj.FillTheGap_everywhere(plane_=plane)
                 ## enlarging plane..
-                new_plane_ = surf_obj.EnlargePixels(new_plane)
-
-            try:
-                zernike_env.img = new_plane_
-            except:
-                zernike_env = ZF.Zernike2d(new_plane_)
+ #               new_plane_ = surf_obj.EnlargePixels(new_plane)
+#            try:
+#                zernike_env.img = new_plane_
+#            except:
+#                zernike_env = ZF.Zernike2d(new_plane_)
             # br_recon, br_coeff = zernike_env.ZernikeReconstruction(order=ZOrder, PLOT=0)
-            br_coeff = zernike_env.ZernikeDecomposition(order=ZOrder)
+#            br_coeff = zernike_env.ZernikeDecomposition(order=ZOrder)
 
-            zernike_sampling_inv_a[:, i] = np.absolute(br_coeff)
-
-        res_inv_ = np.row_stack([index_possible_area, zernike_sampling_inv_a])
-
-        if verso == 1:
-            np.savetxt("{}/zernike/zernike_positive/zernike_alpha_{}.dat".format(respath, a), res_inv_,fmt="%.4e")
-        else:
-            np.savetxt("{}/zernike/zernike_negative/zernike_alpha_{}.dat".format(respath, a), res_inv_,fmt="%.4e")
+ #           zernike_sampling_inv_a[:, i] = np.absolute(br_coeff)
+#        res_inv_ = np.row_stack([index_possible_area, zernike_sampling_inv_a])
+#        if verso == 1:
+#            np.savetxt("{}/zernike/zernike_positive/zernike_alpha_{}.dat".format(respath, a), res_inv_,fmt="%.4e")
+#        else:
+#            np.savetxt("{}/zernike/zernike_negative/zernike_alpha_{}.dat".format(respath, a), res_inv_,fmt="%.4e")
 
