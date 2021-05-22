@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import my_functions
 from scipy.stats import pearsonr
 from matplotlib.ticker import FormatStrFormatter
+import pandas as pd
+
 
     ################### PARAMETERS  ########
 with open('configuration.txt') as f:
@@ -11,10 +13,11 @@ with open('configuration.txt') as f:
 
 number_division = 30
 
-alpha = [.01, 1.5, 1.6, 1.55, 2., 2.5, 3., 3.5, 4., 4.5, 5., 10.]
+alpha = [1.2, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95,
+         2., 2.5, 3., 3.5, 4., 4.5, 5., 10.]
 
 alpha_plot = []
-
+total_plot = 0 #1 se vuoi vederlo
 #fragment = 208
 #cluster = 1
 #R_zernike = 6
@@ -43,28 +46,30 @@ cell_w = x_grid[1] - x_grid[0]
 cell_h = y_grid[1] - y_grid[0]
                         ### END GRID###
 
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax1.set_title("2D projection of the Zernike coefficients in polar coordinates")
-ax1.set_xlabel('$\\theta$ (degree)')
-ax1.set_ylabel('r')
-sc = plt.scatter(theta_total, radius_total)
-ax1.xaxis.set_ticks(x_grid)
-ax1.yaxis.set_ticks(y_grid)
-#ax1.set_yticklabels([])
-ax1.set_xticklabels(x_grid)
-ax1.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
-ax1.grid(True)
-plt.tight_layout()
-plt.show()
+if total_plot == 1:
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_title("2D projection of the Zernike coefficients in polar coordinates")
+    ax1.set_xlabel('$\\theta$ (degree)')
+    ax1.set_ylabel('r')
+    sc = plt.scatter(theta_total, radius_total)
+    ax1.xaxis.set_ticks(x_grid)
+    ax1.yaxis.set_ticks(y_grid)
+    #ax1.set_yticklabels([])
+    ax1.set_xticklabels(x_grid)
+    ax1.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+    ax1.grid(True)
+    plt.tight_layout()
+    plt.show()
 
-
-
-
-loss = []
+reward = []
 alpha_points = []
 for a in alpha:
-    x = np.loadtxt("{}\zernike\zernike_positive\zernike_alpha_{}.dat".format(respath,a), delimiter=" ", skiprows=1)
+    with open("{}\index\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, Rs_select, a)) as f:
+        index_possible_points = [int(float(x)) for x in f.read().split()]
+    x = total[:,index_possible_points]
+    #x = np.loadtxt("{}\zernike\zernike_positive\zernike_alpha_{}.dat".format(respath,a), delimiter=" ", skiprows=1)
+
     print("len alpha {}=".format(a), x.shape)
 
      ### PROIEZIONE SULLE DUE PC DEI COEFFICIENTI DI ZERNIKE PER OGNI PATCH
@@ -148,9 +153,9 @@ for a in alpha:
         plt.show()
 
     corr, _ = pearsonr(count_cell_total,count_cell_alpha)
-    loss.append(corr*number_points/tot_points)
+    reward.append(corr*number_points/tot_points)
 
-np.savetxt("{}\cost_function.txt".format(respath),loss)
+np.savetxt("{}\\reward_function.txt".format(respath),reward)
 
 
 fig = plt.figure()
@@ -160,7 +165,7 @@ ax1.set_xlabel('$\\alpha$ value')
 ax1.set_ylabel("$Pearson~correlation~coefficient \\times \\frac{Number~of~points~with~alpha}{Number~of~total~points}$")
 
 for i in range(len(alpha)):
-    plt.plot(alpha[i], loss[i], 'bo')
-    plt.text(alpha[i] * (1 + 0.01), loss[i] * (1 + 0.01), "{} points".format(alpha_points[i]))
+    plt.plot(alpha[i], reward[i], 'bo')
+    plt.text(alpha[i] * (1 + 0.01), reward[i] * (1 + 0.01), "{} points".format(alpha_points[i]))
 leg = ax1.legend()
 plt.show()
