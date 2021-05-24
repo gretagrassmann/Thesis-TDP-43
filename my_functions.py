@@ -4,7 +4,6 @@ import os, sys
 import numpy as np
 import math
 import statistics
-from sklearn.cluster import KMeans
 
         ################ POINTS SCREENING ########################
 
@@ -22,8 +21,7 @@ def find_nearest_vector(array,value):
     dist_3 = np.sum((array - value)**2, axis=1)
     return np.argmin(dist_3)
 
-
-def Cos(surf, surf_obj_scan, respath, Rs_select, step ):
+def CosWithoutScaling(surf, surf_obj_scan, respath, Rs_select, step ):
     ltmp = np.shape(surf)[0]
     index_possible_area_total = np.arange(0, ltmp, step)
 
@@ -49,7 +47,10 @@ def Cos(surf, surf_obj_scan, respath, Rs_select, step ):
 
                     cos.append(dotproduct / (norm_i * norm_j))
 
-            mean_cos = (statistics.mean(cos) + 1) / 2.  # PER TENERE CONTO DEI COSENI NEGATIVI, SCALO TUTTO
+            if statistics.mean(cos) >= 0 :
+                mean_cos = statistics.mean(cos)  # PER TENERE CONTO DEI COSENI NEGATIVI, SCALO TUTTO
+            else:
+                mean_cos = 0.
         mean_cos_surface.append(mean_cos)
     np.savetxt("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select), mean_cos_surface)
     print("Number of considered patches={}".format(len(mean_cos_surface)))
@@ -62,12 +63,12 @@ def NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respat
     index_possible = []
 
     for i in index_possible_area_total:
-        sys.stderr.write(("\r Processing point {} out of {} for the screening".format(i, ltmp)))
+        sys.stderr.write(("\r Processing point {} out of {} for the screening with alpha=".format(i, ltmp, alpha)))
         sys.stderr.flush()
         patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
 
         R_c = mean_cos[i] * Rs_select * alpha
-        # SE MEAN_COS->1+1 IL PATCH E' PIANO.
+        # SE MEAN_COS->1 IL PATCH E' PIANO.
         # DEFINISCO CHE PUNTI SALVARE
         d2 = np.zeros(len(patch))
 
@@ -79,7 +80,7 @@ def NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respat
         for k in range(len(patch)):
             d2[k] = (patch[k, 0] - patch[patch_center, 0]) ** 2 + (patch[k, 1] - patch[patch_center, 1]) ** 2 + (
                     patch[k, 2] - patch[patch_center, 2]) ** 2
-            if d2[k] > R_c ** 2:  # SALVO I PUNTI NEL CENTRO
+            if d2[k] > R_c ** 2:  # SALVO I PUNTI NON NEL CENTRO
                 indx = \
                 np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
                 if indx not in index_possible:
@@ -94,10 +95,8 @@ def NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respat
 
         ##################### LOSS FUNCTION MINIMIZATION    #########################
 
-def cart2polar(pca):
-    clusterer = KMeans(n_clusters=1, random_state=10)
-    cluster_labels_total = clusterer.fit_predict(pca)
-    centroid = clusterer.cluster_centers_
+def cart2polar(pca, centroid):
+
     x_centered = pca[:,0] - centroid[0, 0]
     y_centered = pca[:,1] - centroid[0, 1]
 
@@ -139,6 +138,41 @@ def PCA(x):
 
 
 ##########################  INUTILI ###################################################
+
+
+
+def Cos(surf, surf_obj_scan, respath, Rs_select, step ):
+    ltmp = np.shape(surf)[0]
+    index_possible_area_total = np.arange(0, ltmp, step)
+
+    mean_cos_surface = []
+    for i in index_possible_area_total:
+        sys.stderr.write(("\r Processing point {} out of {} for the cosine".format(i, ltmp)))
+        sys.stderr.flush()
+        patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
+        if len(patch) <= 1:
+            mean_cos = 1
+        else:
+            # PER CIASCUN PATCH TROVO LA MEDIA DEI COSENI
+            normal_v = patch[:, 3:6]
+            cos = []
+            for ii in range(len(patch) - 1):
+                norm_i = np.sqrt(np.sum(np.power(normal_v[ii], 2)))
+                for j in range(ii + 1, len(patch)):
+                    norm_j = np.sqrt(np.sum(np.power(normal_v[j], 2)))
+
+                    dotproduct = 0
+                    for a, b in zip(normal_v[ii], normal_v[j]):
+                        dotproduct = dotproduct + a * b
+
+                    cos.append(dotproduct / (norm_i * norm_j))
+
+            mean_cos = (statistics.mean(cos) + 1) / 2.  # PER TENERE CONTO DEI COSENI NEGATIVI, SCALO TUTTO
+        mean_cos_surface.append(mean_cos)
+    np.savetxt("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select), mean_cos_surface)
+    print("Number of considered patches={}".format(len(mean_cos_surface)))
+    return()
+
 
 
 def CosScanning(surf, surf_obj_scan, Rs_select, alpha, step, respath):
