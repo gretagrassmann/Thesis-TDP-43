@@ -12,8 +12,7 @@ with open('configuration.txt') as f:
     for line in f:
         exec(line)
 
-alpha = [1.6, 1.6, 1.8, 1.9, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.5 ]
-#alpha = [1.3, 1.4, 1.6, 1.7, 1.8, 1.9]
+alpha = [0.2, 0.3, .4, .5, .6, .7, .8, .9]
 
 #R_zernike = 6
 #Rs_select = 2
@@ -116,7 +115,9 @@ print("Vuoi vedere la media dei coseni per ciascuna patch? y o n?")
 o = input()
 if o == "y":
     with open("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select)) as f:
-        mean_cos = [2 * (float(x)) - 1 for x in f.read().split()]
+#        mean_cos = [2 * (float(x)) - 1 for x in f.read().split()]
+        mean_cos = [float(x) for x in f.read().split()]
+
     plt.hist(mean_cos, bins='auto')  # arguments are passed to np.histogram
     plt.title("Mean cosine value of the surface's {} patches".format(len(mean_cos)))
     plt.show()
@@ -129,7 +130,8 @@ if o == "y":
         #mean_cos = [2 * (float(x)) - 1 for x in f.read().split()]
         mean_cos = [float(x) for x in f.read().split()]
     for i in alpha:
-        index_possible_area = my_functions.NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
+#        index_possible_area = my_functions.NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
+        index_possible_area = my_functions.PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
 
 
 
