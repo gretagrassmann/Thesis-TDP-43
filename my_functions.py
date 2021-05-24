@@ -1,5 +1,5 @@
 import ZernikeFunc as ZF
-
+import random
 import os, sys
 import numpy as np
 import math
@@ -48,13 +48,66 @@ def CosWithoutScaling(surf, surf_obj_scan, respath, Rs_select, step ):
                     cos.append(dotproduct / (norm_i * norm_j))
 
             if statistics.mean(cos) >= 0 :
-                mean_cos = statistics.mean(cos)  # PER TENERE CONTO DEI COSENI NEGATIVI, SCALO TUTTO
+                mean_cos = statistics.mean(cos)
             else:
                 mean_cos = 0.
         mean_cos_surface.append(mean_cos)
     np.savetxt("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select), mean_cos_surface)
     print("Number of considered patches={}".format(len(mean_cos_surface)))
     return()
+
+
+def PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respath):
+    ltmp = np.shape(surf)[0]
+    index_possible_area_total = np.arange(0, ltmp, step)
+    index_possible = []
+    delete_index = []
+    iter = 0
+    for i in index_possible_area_total:
+        if i not in np.array(delete_index):
+            iter += 1
+            sys.stderr.write(("\r Processing point {} out of {} for the screening with alpha=".format(i, ltmp, alpha)))
+            sys.stderr.flush()
+            patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
+            number_points = int((1.-mean_cos[i])*len(patch)*alpha)
+            # Se e' completamente piatta (cos=1) prendo solo il punto al centro
+            if number_points == 0:
+                patch_center_indx_inpatch = np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
+                patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch, 0]) & (surf[:, 1] == patch[patch_center_indx_inpatch, 1]) & (surf[:, 2] == patch[patch_center_indx_inpatch, 2]))[0]
+                # Se quando ho costruito la patch ho cancellato il punto di partenza per pulirla, prendo come centro il punto piu' vicino
+                if patch_center.size == 0:
+                    patch_center_indx_inpatch = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
+                    patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch,0]) & (surf[:, 1] == patch[patch_center_indx_inpatch,1]) & (surf[:, 2] == patch[patch_center_indx_inpatch,2]))[0]
+
+                if patch_center not in index_possible:
+                    index_possible.append(patch_center)
+
+            else:
+                patch_points = random.sample(list(patch), number_points)
+
+                for k in range(len(patch_points)):
+                    indx = np.where((surf[:, 0] == patch_points[k][0]) & (surf[:, 1] == patch_points[k][1]) & (surf[:, 2] == patch_points[k][2]))[0]
+                    if indx not in index_possible:
+                        index_possible.append(indx[0])
+
+
+            #Ora faccio in modo di non andare a considerare piu' nessuno dei punti di questa patch
+            #delete_index_patch = np.zeros(len(patch))
+            for k in range(len(patch)):
+                delete = np.where((surf[:, 0] == patch[k,0]) & (surf[:, 1] == patch[k,1]) & (surf[:, 2] == patch[k,2]))[0]
+                if delete not in delete_index:
+                    delete_index.append(delete)
+              #  delete_index_patch[k] = (np.where((surf[:, 0] == patch[k,0]) & (surf[:, 1] == patch[k,1]) & (surf[:, 2] == patch[k,2]))[0])
+
+            #delete_index.append(delete_index_patch)
+
+
+    index_possible_area = sorted(index_possible)
+    np.savetxt("{}\index_percentage\index_possible_area_R_s_{}_alpha_{}_step_{}.txt".format(respath, Rs_select, alpha, step),
+               index_possible_area)
+    print("\r number of points for R_s={},alpha={},step={} =".format(Rs_select, alpha, step), len(index_possible_area))
+
+    return ()
 
 
 def NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respath):
@@ -76,6 +129,7 @@ def NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respat
         np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
         if patch_center.size == 0:
             patch_center = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
+
         center_index = []
         for k in range(len(patch)):
             d2[k] = (patch[k, 0] - patch[patch_center, 0]) ** 2 + (patch[k, 1] - patch[patch_center, 1]) ** 2 + (
