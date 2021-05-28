@@ -4,8 +4,8 @@ import os, sys
 import numpy as np
 import math
 import statistics
-
-        ################ POINTS SCREENING ########################
+import pandas as pd
+import operator
 
 def find_nearest_vector2D(array,value):
     dist_2 = np.sum((array - value)**2, axis=1)
@@ -20,6 +20,13 @@ def find_nearest_vector(array,value):
     array = np.asarray(array)
     dist_3 = np.sum((array - value)**2, axis=1)
     return np.argmin(dist_3)
+
+
+
+
+
+################ POINTS SCREENING ########################
+
 
 def CosWithoutScaling(surf, surf_obj_scan, respath, Rs_select, step ):
     ltmp = np.shape(surf)[0]
@@ -55,6 +62,74 @@ def CosWithoutScaling(surf, surf_obj_scan, respath, Rs_select, step ):
     np.savetxt("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select), mean_cos_surface)
     print("Number of considered patches={}".format(len(mean_cos_surface)))
     return()
+
+def CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respath, number_crowns):
+    ltmp = np.shape(surf)[0]
+    index_possible_area_total = np.arange(0, ltmp, step)
+
+    crown_limits = np.linspace(.0, Rs_select, num=number_crowns+1)
+
+    index_possible = []
+    delete_index = []
+    for i in index_possible_area_total:
+        if i not in np.array(delete_index):
+            sys.stderr.write(("\r Processing point {} out of {} for the screening with alpha=".format(i, ltmp, alpha)))
+            sys.stderr.flush()
+            patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
+
+            # Ogni volta per il disco interno prendo solo in centro: qua trovo il centro
+            patch_center_indx_inpatch = np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
+            patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch, 0]) & (surf[:, 1] == patch[patch_center_indx_inpatch, 1]) & (surf[:, 2] == patch[patch_center_indx_inpatch, 2]))[0]
+            # Se quando ho costruito la patch ho cancellato il punto di partenza per pulirla, prendo come centro il punto piu' vicino
+            if patch_center.size == 0:
+                patch_center_indx_inpatch = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
+                patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch,0]) & (surf[:, 1] == patch[patch_center_indx_inpatch,1]) & (surf[:, 2] == patch[patch_center_indx_inpatch,2]))[0]
+
+            index_possible.append(patch_center)
+
+            # Ora invece riempio per ciascuna corona le liste con i punti che le appartengono
+            distance = []
+            for k in range(len(patch)):
+                distance.append(math.sqrt((patch[k, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[k, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
+                        patch[k, 2] - patch[patch_center_indx_inpatch, 2]) ** 2))
+
+            sorted_distance = sorted(enumerate(distance), key=operator.itemgetter(1))
+
+            first_point = 0
+            for ii in range(1, number_crowns):
+                points_in_crown = []
+                for i in range(first_point, len(patch)):
+                    if (sorted_distance[i][1] > crown_limits[ii]) & (sorted_distance[i][1] <= crown_limits[ii+1]):
+                        points_in_crown.append(sorted_distance[i][0])
+                    if sorted_distance[i][1] > crown_limits[ii+1]:
+                        first_point = i
+                        break
+
+                tot_points = len(points_in_crown)
+                n_points = int(tot_points*(1-mean_cos[i])*(crown_limits[ii+1]/Rs_select)*alpha)
+                patch_points = random.sample(points_in_crown, n_points)
+                for n in range(n_points):
+                    index_possible.append(np.where((surf[:, 0] == patch[patch_points[n], 0]) & (surf[:, 1] == patch[patch_points[n], 1]) & (surf[:, 2] == patch[patch_points[n], 2]))[0])
+
+
+
+            #Ora faccio in modo di non andare a considerare piu' nessuno dei punti di questa patch
+            #delete_index_patch = np.zeros(len(patch))
+            for k in range(len(patch)):
+                delete = np.where((surf[:, 0] == patch[k,0]) & (surf[:, 1] == patch[k,1]) & (surf[:, 2] == patch[k,2]))[0]
+                delete_index.append(delete)
+              #  delete_index_patch[k] = (np.where((surf[:, 0] == patch[k,0]) & (surf[:, 1] == patch[k,1]) & (surf[:, 2] == patch[k,2]))[0])
+
+            #delete_index.append(delete_index_patch)
+
+
+    index_possible_area = sorted(index_possible)
+    np.savetxt("{}\index_distribution_{}_crowns\index_possible_area_R_s_{}_alpha_{}_step_{}.txt".format(respath, number_crowns, Rs_select, alpha, step),
+               index_possible_area)
+    print("\r number of points for R_s={},alpha={},step={} =".format(Rs_select, alpha, step), len(index_possible_area))
+
+    return ()
+
 
 
 def PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respath):
@@ -179,12 +254,13 @@ def PCA(x):
     # of our final reduced data.
     n_components = 2  # you can select any number of components.
     eigenvector_subset = sorted_eigenvectors[:, 0:n_components]
+    eigen_values = sorted_eigenvalue[0:n_components]
 
     # Transform the data
     # X_reduced = np.dot(eigenvector_subset.transpose(), X_meaned.transpose()).transpose()
     X_reduced = np.dot(eigenvector_subset.transpose(), X.transpose()).transpose()
 
-    return(X_reduced, eigenvector_subset)
+    return(X_reduced, eigenvector_subset, eigen_values)
 
 
 
