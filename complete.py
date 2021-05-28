@@ -11,13 +11,13 @@ import my_functions
 with open('configuration.txt') as f:
     for line in f:
         exec(line)
+alpha = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1.]
 
-alpha = [0.2, 0.3, .4, .5, .6, .7, .8, .9]
-
+number_crowns = 5
 #R_zernike = 6
 #Rs_select = 2
 #fragment = 208
-#cluster = 1
+cluster = 1
 #step = 1
 #verso = float(1)
 #Npoint = int(1)
@@ -26,7 +26,6 @@ alpha = [0.2, 0.3, .4, .5, .6, .7, .8, .9]
 
 pdb_file = "..\\{}\cluster{}.dms".format(fragment, cluster)
 respath = "..\\{}\cluster{}\R_zernike_{}\R_s_{}".format(fragment, cluster, R_zernike, Rs_select)
-
 if (verso == 1):
     ver = "up"
 elif (verso == -1):
@@ -47,7 +46,7 @@ ltmp = np.shape(surf)[0]
 
 
             ################## ZERNIKE PER OGNI SINGOLO PUNTO   #####################
-print("Vuoi fare ZERNIKE per OGNI SINGOLO PUNTO? y o n?")
+print("Vuoi fare ZERNIKE per OGNI {} PUNTI? y o n?".format(Npoint))
 o = input()
 if o == "y":
     index_all_possible_area = np.arange(ltmp)[::Npoint]
@@ -97,6 +96,7 @@ if o == "y":
     res_inv_ = np.row_stack([index_all_possible_area, zernike_sampling_inv_a])
     if verso == 1:
         np.savetxt("{}/zernike/zernike_positive/zernike_total.dat".format(respath), res_inv_, fmt="%.4e")
+
     else:
         np.savetxt("{}/zernike/zernike_negative/zernike_total.dat".format(respath), res_inv_, fmt="%.4e")
 
@@ -131,7 +131,7 @@ if o == "y":
         mean_cos = [float(x) for x in f.read().split()]
     for i in alpha:
 #        index_possible_area = my_functions.NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
-        index_possible_area = my_functions.PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
-
+#        index_possible_area = my_functions.PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
+        index_possible_area = my_functions.CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, number_crowns)
 
 
