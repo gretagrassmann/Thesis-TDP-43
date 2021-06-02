@@ -11,11 +11,14 @@ import my_functions
 with open('configuration.txt') as f:
     for line in f:
         exec(line)
-alpha = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1.]
+#alpha = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1.]
 
-number_crowns = 5
+alpha = [ 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.]
+screening = "index_continuous_distribution_exp"
+
+#number_crowns = 20
 #R_zernike = 6
-#Rs_select = 2
+Rs_select = 6
 #fragment = 208
 cluster = 1
 #step = 1
@@ -132,6 +135,7 @@ if o == "y":
     for i in alpha:
 #        index_possible_area = my_functions.NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
 #        index_possible_area = my_functions.PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
-        index_possible_area = my_functions.CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, number_crowns)
+#        index_possible_area = my_functions.CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, number_crowns)
+        index_possible_area = my_functions.ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
 
 
