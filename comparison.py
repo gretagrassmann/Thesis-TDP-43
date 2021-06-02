@@ -3,24 +3,28 @@ import matplotlib.pyplot as plt
 import my_functions
 from matplotlib.ticker import FormatStrFormatter
 from sklearn.cluster import KMeans
-
+import statistics
 
     ################### PARAMETERS  ########
 with open('configuration.txt') as f:
     for line in f:
         exec(line)
-number_crowns = 5
 
-#number_division = 60
-number_division = 20
+screening = "index_continuous_distribution_exp"
 
-alpha = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1.]
+#number_crowns = 5
+
+number_division = 60
+
+#alpha = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1.]
+alpha = [1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.]
+
 alpha_plot = []
-total_plot = 1 #1 se vuoi vederlo
+total_plot = 0 #1 se vuoi vederlo
 #fragment = 208
 #cluster = 1
 #R_zernike = 6
-#Rs_select = 2
+Rs_select = 4
 
     ############### END PARAMETERS  ################
 respath = "..\\{}\cluster{}\R_zernike_{}\R_s_{}".format(fragment, cluster, R_zernike, Rs_select)
@@ -63,7 +67,7 @@ print("INIZIALE+",sum(z_total)/tot_points)
 points_cosine = []
 for a in alpha:
 
-    with open("{}\index_distribution_{}_crowns\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, number_crowns, Rs_select, a)) as f:
+    with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, a)) as f:
         index_possible_points = [int(float(x)) for x in f.read().split()]
     x = total[:,index_possible_points]
     z = z_total[index_possible_points]
@@ -108,6 +112,7 @@ for a in alpha:
     count_cell_total=np.zeros(len(x_grid)*len(y_grid))
     count_cell_alpha = np.zeros(len(x_grid)*len(y_grid))
     common_points = []
+    alpha_points_for_variance = []
 
     k = 0
     occupied_cells = 0
@@ -124,25 +129,28 @@ for a in alpha:
             #punti blu nella cella su tutti i punti blu
             count_cell_total[k] = len(index_cell_total[0])/tot_points
 
-            #punti arancioni nella cella su tutti i punti blu
+            #punti arancioni nella cella su tutti i punti arancioni
             count_cell_alpha[k] = len(index_cell_alpha[0])/number_points
             if count_cell_alpha[k] != 0:
                 occupied_cells +=1
                 common_points.append(abs(count_cell_total[k]-count_cell_alpha[k]))
+                alpha_points_for_variance.append(count_cell_alpha[k]*number_points)
             k += 1
 
-    reward.append(abs(tot_elips-alpha_elips)*(sum(z)/number_points)*sum(common_points)*((len(x_grid)*(len(y_grid)))-occupied_cells)/number_points)
+
+    #reward.append(abs(tot_elips-alpha_elips)*(sum(z)/number_points)*sum(common_points)*((len(x_grid)*(len(y_grid)))-occupied_cells)/number_points)
+    reward.append(abs(tot_elips-alpha_elips)*(sum(z)/number_points)*statistics.variance(alpha_points_for_variance)*((len(x_grid)*len(y_grid))-occupied_cells)/(len(x_grid)*(len(y_grid))))
     points_cosine.append(sum(z)/number_points)
 
-np.savetxt("{}\\reward_function_{}_crowns.txt".format(respath,number_crowns),reward)
+#np.savetxt("{}\\reward_function_continuous_distribution_exp.txt".format(respath),reward)
 
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 #ax1.set_title("Cost function")
 ax1.set_xlabel('$\\alpha$ value')
-ax1.set_ylabel("Reward function ")
-ax1.set_xticks(np.arange(0, 1.05, .05))
+ax1.set_ylabel("Loss function ")
+#ax1.set_xticks(np.arange(0, 1.05, .05))
 for i in range(len(alpha)):
     plt.plot(alpha[i], reward[i], 'bo')
    # plt.text(alpha[i] * (1 + 0.01), reward[i] * (1 + 0.01), "{} points".format(alpha_points[i]))
@@ -153,7 +161,7 @@ ax1 = fig.add_subplot(111)
 #ax1.set_title("Cost function")
 ax1.set_xlabel('$\\alpha$ value')
 ax1.set_ylabel("Mean cosine value of the selected patches")
-ax1.set_xticks(np.arange(0, 1.05, .05))
+#ax1.set_xticks(np.arange(0, 1.05, .05))
 for i in range(len(alpha)):
     plt.plot(alpha[i], points_cosine[i], "*")
 leg = ax1.legend()
@@ -165,7 +173,7 @@ plt.show()
 print("Qual'e' il miglior valore per alpha?")
 best_alpha = input()
 
-with open("{}\index_distribution_{}_crowns\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, number_crowns, Rs_select, best_alpha)) as f:
+with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, best_alpha)) as f:
     index_possible_points = [int(float(x)) for x in f.read().split()]
 x = total[:, index_possible_points]
 z = z_total[index_possible_points]
