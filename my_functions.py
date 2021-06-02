@@ -4,8 +4,8 @@ import os, sys
 import numpy as np
 import math
 import statistics
-import pandas as pd
 import operator
+import random
 
 def find_nearest_vector2D(array,value):
     dist_2 = np.sum((array - value)**2, axis=1)
@@ -62,6 +62,60 @@ def CosWithoutScaling(surf, surf_obj_scan, respath, Rs_select, step ):
     np.savetxt("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select), mean_cos_surface)
     print("Number of considered patches={}".format(len(mean_cos_surface)))
     return()
+
+
+def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respath, screening):
+    ltmp = np.shape(surf)[0]
+    index_possible_area_total = np.arange(0, ltmp, step)
+
+    index_possible = []
+    delete_index = []
+    for i in index_possible_area_total:
+        if i not in np.array(delete_index):
+            sys.stderr.write(("\r Processing point {} out of {} for the screening with alpha=".format(i, ltmp, alpha)))
+            sys.stderr.flush()
+            patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
+
+            # Ogni volta prendo il centro: qua trovo il centro
+            patch_center_indx_inpatch = np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
+            # Se quando ho costruito la patch ho cancellato il punto di partenza per pulirla, prendo come centro il punto piu' vicino
+            if patch_center_indx_inpatch.size == 0:
+                patch_center_indx_inpatch = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
+                patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch,0]) & (surf[:, 1] == patch[patch_center_indx_inpatch,1]) & (surf[:, 2] == patch[patch_center_indx_inpatch,2]))[0]
+                index_possible.append(patch_center)
+            else:
+                index_possible.append(i)
+
+
+            # Ora calcolo per ciascun punto la distanza dal centro e la normalizzo. Poi estraggo un numero casuale: se e' minore
+            # della prob considero quel punto
+            for k in range(len(patch)):
+                distance = (math.sqrt((patch[k, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[k, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
+                        patch[k, 2] - patch[patch_center_indx_inpatch, 2]) ** 2))/Rs_select
+                if screening == "index_continuous_distribution":
+                    prob = (alpha*(distance**2)+(1-alpha)*distance)*(1-mean_cos[i])
+                else:
+                    prob = (distance**alpha)*(1-mean_cos[i])
+                rand = random.random()
+                if rand < prob:
+                    index_in_surface = np.where((surf[:, 0] == patch[k,0]) & (surf[:, 1] == patch[k,1]) & (surf[:, 2] == patch[k,2]))[0]
+                    if index_in_surface not in np.array(index_possible):
+                        index_possible.append(index_in_surface)
+                delete = np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
+                delete_index.append(delete)
+
+    index_possible_area = sorted(index_possible)
+
+    np.savetxt("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_{}.txt".format(respath, screening, Rs_select, alpha, step),
+               index_possible_area)
+    print("\r number of points for R_s={},alpha={},step={} =".format(Rs_select, alpha, step), len(index_possible_area))
+
+    return ()
+
+
+
+
+
 
 def CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respath, number_crowns):
     ltmp = np.shape(surf)[0]
