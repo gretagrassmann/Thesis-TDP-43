@@ -11,7 +11,8 @@
   * [2D Zernike expansion](#2D-zernike-expansion)  
     + [Complete.py](#complete.py)
     + [My functions.py](#my-functions.py)
-    + [Polar pca comparison.py](#polar-pca-comparison.py)
+    + [Polar pca comparison.py !!!OLD!!!](#polar-pca-comparison.py-!!!OLD!!!)
+    + [Comparison.py](#comparison.py)
     + [Screening plot.py](#screening-plot.py)
 - [DISCLAIMER](#disclaimer)  
 - [CONTACTS](#contacts)
@@ -78,8 +79,8 @@ To study these configurations we can employ the Zernike method.
 All the parameters that control this part of the analysis are defined in ***configuration.txt***, which includes:
 * *Rs_select*: the radius of the sphere used to determine the patch whose roughness we are going to study.
 * *R_zernike*: the radius of the sphere used to determine the patch whose shape we will reconstruct with the Zernike method.
-* *alpha*: a list of the possible values of the parameter determining the ratio between *Rs_select* and *R_c*.<br />
-*R_c* is used to determine on how many points we are going to build the patches to implement the Zernike method: given a patch of radius *Rs_select*, the points closer then *R_c* to its center will not be considered as centers for the patches of radius *R_zernike* that we are going to reconstruct with the Zernike method*. Since it is defined as *R_c=Rs_select\*mean_cosine\*alpha*, where *mean_cosine* is the average value of the cosines between the vectors normal to the patch, *R_c* is smaller the more rough the patch is. 
+* *alpha*: a list of the possible values of the parameter determining the probability to be considered for the screeening assigned to each point.<br />
+  For each point *j* in a patch centered on the point *i* this probability is defined as *p(j)=r_j^(alpha)(1-mean_cos(i))*, where *r_j* is the normalized distance of the point *j* of the patch from its center *i*. 
 * *fragment*: the name of the directory corresponding to the studied fragment.
 * *cluster*: the number of the studied centroid (i.e., one of the representative configurations).
 * *step*: every how many points we build a patch whose roughness we want to study.
@@ -91,14 +92,19 @@ All the parameters that control this part of the analysis are defined in ***conf
 #### Complete.py
 This code is divided in four steps:
 1. Calculation of the Zernike descriptors of all the possible points in the surface, defined with *R_zernike*.
-2. Calculation of the roughness (i.e., the mean cosine value) for all these possible patches.
-3. Evaluation of the points to consider for the Zernike method for all the values selected in *alpha*.
-4. Calculation of the Zernike coefficients for each screening obtained in the previous step.
+2. Calculation of the roughness (i.e., the mean cosine value) for all these possible patches and plot.
+3. Screening with the different selected values of alpha and saving of the found indexes.
+4. ***After the best alpha value has been found with comparison.py:*** saving of the indexes found with the best possible screening and of the corresponding Zernike coefficients.
 
 #### My functions.py
-Here are defined some of the functions used in ***complete.py***.
+Here are defined some of the functions used in ***complete.py***, in particular:
+* *CosWithoutScaling*: calculation of the mean cosine for all the possible patches. The negative values are set as zero.
+* *ContinuousDistribution*: screening.
 
-#### Polar pca comparison.py
+#### Comparison.py
+This code compare the screenings' results obtained for the different values.
+
+#### Polar pca comparison.py !!!OLD!!!
 * **1:** This code starts by doing a PCA of the Zernike coefficients obtained in step 1. of ***complete.py*** and representing the projection on the first two eigenvectors in polar coordinates.<br />
 Then it defines a grid and counts the percentage of points falling in each cell.
 * **2:** Then, for each value *alpha'* contained in *alpha*:
