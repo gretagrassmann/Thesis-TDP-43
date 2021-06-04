@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import ZernikeFunc as ZF
 import SurfaceFunc as SF
 import my_functions
-
+import shutil
         ######################## PARAMETERS #########
 with open('configuration.txt') as f:
     for line in f:
@@ -146,4 +146,33 @@ if o == "y":
 #        index_possible_area = my_functions.CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, number_crowns)
         index_possible_area = my_functions.ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
 
+
+
+print("Vuoi salvare i coefficenti di Zernike dello screening migliore? Se si con che alpha? Altrimenti digita n")
+alpha = input()
+if alpha != "n":
+    # Apro il file con gli indici delle patch di cui voglio salvare Zernike
+    shutil.copy("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, alpha),
+                "{}\zernike\index_alpha.txt".format(respath))
+
+
+    with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, alpha)) as f:
+        index_possible_points = [int(float(x)) for x in f.read().split()]
+
+    #Apro il file con tutti gli indici di Zernike, compresa la riga 1 che contiene gli indici
+    if verso == 1:
+        zernike_total = np.loadtxt("{}\zernike\zernike_positive\zernike_total.dat".format(respath), delimiter=" ")
+    else:
+        zernike_total = np.loadtxt("{}\zernike\zernike_negative\zernike_total.dat".format(respath), delimiter=" ")
+
+
+
+    zernike = zernike_total[:,index_possible_points]
+
+
+
+    if verso == 1:
+        np.savetxt("{}/zernike/zernike_positive/zernike_alpha.dat".format(respath, alpha), zernike, fmt="%.4e")
+    else:
+        np.savetxt("{}/zernike/zernike_negative/zernike_alpha.dat".format(respath, alpha), zernike, fmt="%.4e")
 
