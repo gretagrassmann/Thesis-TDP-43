@@ -11,26 +11,20 @@ import shutil
 with open('configuration.txt') as f:
     for line in f:
         exec(line)
-#alpha = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1.]
 
-#alpha = [ 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.]
-#alpha = [21., 22., 23., 24., 25., 26., 27., 28., 29., 30.]
-#alpha = [40., 50., 60., 70., 80., 90., 100.]
-#alpha = [71., 72., 73., 74., 75., 76., 77., 78., 79.,
-#         81., 82., 83., 84., 85., 86., 87., 88., 89.,
-#         91., 92., 93., 94., 95., 96.]
-alpha = [103]
-
+alpha = [30., 60., 90., 120., 150., 180., 210., 240., 270., 300., 330., 360., 390.,
+         420., 450., 480., 510., 540., 570., 600., 630., 660.,
+         690., 720., 750., 780., 810.]
 
 screening = "index_continuous_distribution_exp"
 
 #number_crowns = 20
 #R_zernike = 6
 Rs_select = 4
-#fragment = 208
-cluster = 1
+fragment = 208
+cluster = 2
 #step = 1
-#verso = float(1)
+verso = float(1)
 #Npoint = int(1)
 
     ###################################   END PARAMETERS    ###########
@@ -145,34 +139,3 @@ if o == "y":
 #        index_possible_area = my_functions.PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
 #        index_possible_area = my_functions.CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, number_crowns)
         index_possible_area = my_functions.ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
-
-
-
-print("Vuoi salvare i coefficenti di Zernike dello screening migliore? Se si con che alpha? Altrimenti digita n")
-alpha = input()
-if alpha != "n":
-    # Apro il file con gli indici delle patch di cui voglio salvare Zernike
-    shutil.copy("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, alpha),
-                "{}\zernike\index_alpha.txt".format(respath))
-
-
-    with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, alpha)) as f:
-        index_possible_points = [int(float(x)) for x in f.read().split()]
-
-    #Apro il file con tutti gli indici di Zernike, compresa la riga 1 che contiene gli indici
-    if verso == 1:
-        zernike_total = np.loadtxt("{}\zernike\zernike_positive\zernike_total.dat".format(respath), delimiter=" ")
-    else:
-        zernike_total = np.loadtxt("{}\zernike\zernike_negative\zernike_total.dat".format(respath), delimiter=" ")
-
-
-
-    zernike = zernike_total[:,index_possible_points]
-
-
-
-    if verso == 1:
-        np.savetxt("{}/zernike/zernike_positive/zernike_alpha.dat".format(respath, alpha), zernike, fmt="%.4e")
-    else:
-        np.savetxt("{}/zernike/zernike_negative/zernike_alpha.dat".format(respath, alpha), zernike, fmt="%.4e")
-

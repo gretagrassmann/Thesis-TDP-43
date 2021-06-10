@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import my_functions
 from matplotlib.ticker import FormatStrFormatter
-from sklearn.cluster import KMeans
+import shutil
 import statistics
 
     ################### PARAMETERS  ########
@@ -16,17 +16,15 @@ screening = "index_continuous_distribution_exp"
 
 number_division = 20
 
-#alpha = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1.]
 alpha = [30., 60., 90., 120., 150., 180., 210., 240., 270., 300., 330., 360., 390.,
          420., 450., 480., 510., 540., 570., 600., 630., 660.,
-         690., 720., 750., 780., 810., 840., 870., 900.,
-         930., 960., 990.]
+         690., 720., 750., 780., 810.]
 
 
 
 
 alpha_plot = []
-total_plot = 0 #1 se vuoi vederlo
+total_plot = 1 #1 se vuoi vederlo
 #fragment = 208
 #cluster = 1
 #R_zernike = 6
@@ -41,10 +39,23 @@ print("len total=", total.shape)
 tot_points = total.shape[1]
 
 ### PCA of the Zernike coefficients for all patches
-TOT_reduced, total_eigenvector_subset, total_eigenvalues_subset = my_functions.PCA(total)
+TOT_reduced, total_eigenvector_subset, total_eigenvalues_subset, total_eigenvalues = my_functions.PCA(total)
 tot_elips = total_eigenvalues_subset[0]/total_eigenvalues_subset[1]
 tot_x_ax = TOT_reduced[:, 0]
 tot_y_ax = TOT_reduced[:, 1]
+
+######  EVR #######
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.set_title("Explained Variance Ratio")
+ax1.set_xlabel('Eigenvector index')
+ax1.set_ylabel('Explained Variance Ratio')
+evr = np.divide(total_eigenvalues, sum(total_eigenvalues))
+x = np.arange(1,len(total_eigenvalues)+1)
+ax1.scatter(x[2:], evr[2:], s=5, c='r', label='')
+ax1.scatter(x[0:2], evr[0:2], s=50, c='y', marker='*', label='First two eigenvalues\' EVRs')
+leg = ax1.legend()
+plt.show()
 
 z_total = np.loadtxt("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select), delimiter=" ")
 print(np.shape(z_total))
@@ -114,7 +125,7 @@ for a in alpha:
         plt.tight_layout()
         #plt.show()
 
-    _, _, eigenvalues_subset = my_functions.PCA(x)
+    _, _, eigenvalues_subset, _ = my_functions.PCA(x)
     alpha_elips = eigenvalues_subset[0] / eigenvalues_subset[1]
 
 
@@ -163,16 +174,31 @@ for a in alpha:
 
 #np.savetxt("{}\\reward_function_continuous_distribution_exp.txt".format(respath),reward)
 
+difference = []
+alpha_index = []
+scaled_reward = []
+for i in range(1,len(alpha_points)):
+    difference.append(abs(alpha_points[i]-alpha_points[i-1]))
+    alpha_index.append(alpha[i])
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.set_ylabel("Number of discarded points")
+ax1.set_xlabel('$\\alpha$ value')
+ax1.set_xticks(alpha_index)
+plt.plot(alpha_index, difference)
+leg = ax1.legend()
+
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 ax1.set_xlabel('$\\alpha$ value')
-ax1.set_ylabel("components")
+ax1.set_ylabel("Components")
 plt.plot(alpha, variance_tot, label = 'variance')
-plt.plot(alpha, elipse_tot, label = 'elipse')
+#plt.plot(alpha, elipse_tot, label = 'elipse')
 plt.plot(alpha, free_cells_tot, label = 'not occupied')
 plt.plot(alpha, points_cosine, label = 'mean cosine')
 leg = ax1.legend()
+
 
 
 
@@ -194,10 +220,11 @@ ax1 = fig.add_subplot(111)
 #ax1.set_title("Cost function")
 ax1.set_xlabel('$\\alpha$ value')
 ax1.set_ylabel("Loss function ")
+ax1.set_xticks(alpha)
 #ax1.scatter(alpha, reward, color=color)
 ax1.plot(alpha, reward)
-ax1.plot(alpha[alpha_min], reward[alpha_min], '*')
-ax1.legend(["The minimum of the Loss function is at $\\alpha$={}".format(alpha[alpha_min])])
+#ax1.plot(alpha[alpha_min], reward[alpha_min], '*')
+#ax1.legend(["The minimum of the Loss function is at $\\alpha$={}".format(alpha[alpha_min])])
 
 
 fig = plt.figure()
@@ -253,3 +280,28 @@ plt.tight_layout()
 
 plt.show()
 
+
+print("Vuoi salvare i coefficenti di Zernike dello screening migliore? Se si con che alpha? Altrimenti digita n")
+alpha = input()
+if alpha != "n":
+    # Apro il file con gli indici delle patch di cui voglio salvare Zernike
+    shutil.copy("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, alpha),
+                "{}\zernike\index_alpha.txt".format(respath))
+
+
+    with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, alpha)) as f:
+        index_possible_points = [int(float(x)) for x in f.read().split()]
+
+    #Apro il file con tutti gli indici di Zernike, compresa la riga 1 che contiene gli indici
+    zernike_total_positive = np.loadtxt("{}\zernike\zernike_positive\zernike_total.dat".format(respath), delimiter=" ")
+    zernike_total_negative = np.loadtxt("{}\zernike\zernike_negative\zernike_total.dat".format(respath), delimiter=" ")
+
+
+
+    zernike_positive_alpha = zernike_total_positive[:,index_possible_points]
+    zernike_negative_alpha = zernike_total_negative[:,index_possible_points]
+
+
+
+    np.savetxt("{}/zernike/zernike_positive/zernike_alpha.dat".format(respath, alpha), zernike_positive_alpha, fmt="%.4e")
+    np.savetxt("{}/zernike/zernike_negative/zernike_alpha.dat".format(respath, alpha), zernike_negative_alpha, fmt="%.4e")
