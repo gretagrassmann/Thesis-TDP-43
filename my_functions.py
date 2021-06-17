@@ -72,7 +72,7 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
     delete_index = []
     for i in index_possible_area_total:
         if i not in np.array(delete_index):
-            sys.stderr.write(("\r Processing point {} out of {} for the screening with alpha=".format(i, ltmp, alpha)))
+            sys.stderr.write(("\r Processing point {} out of {} for the screening with alpha={}".format(i, ltmp, alpha)))
             sys.stderr.flush()
             patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
 
@@ -83,26 +83,48 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
                 patch_center_indx_inpatch = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
                 patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch,0]) & (surf[:, 1] == patch[patch_center_indx_inpatch,1]) & (surf[:, 2] == patch[patch_center_indx_inpatch,2]))[0]
                 index_possible.append(patch_center)
+                delete_index.append(patch_center)
             else:
                 index_possible.append(i)
+                delete_index.append(i)
 
 
             # Ora calcolo per ciascun punto la distanza dal centro e la normalizzo. Poi estraggo un numero casuale: se e' minore
             # della prob considero quel punto
-            for k in range(len(patch)):
-                distance = (math.sqrt((patch[k, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[k, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
-                        patch[k, 2] - patch[patch_center_indx_inpatch, 2]) ** 2))/Rs_select
-                if screening == "index_continuous_distribution":
-                    prob = (alpha*(distance**2)+(1-alpha)*distance)*(1-mean_cos[i])
-                else:
-                    prob = (distance**alpha)*(1-mean_cos[i])
-                rand = random.random()
-                if rand < prob:
-                    index_in_surface = np.where((surf[:, 0] == patch[k,0]) & (surf[:, 1] == patch[k,1]) & (surf[:, 2] == patch[k,2]))[0]
-                    if index_in_surface not in np.array(index_possible):
-                        index_possible.append(index_in_surface)
-                delete = np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
-                delete_index.append(delete)
+
+            d2 = np.sqrt((patch[:, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[:, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
+                        patch[:, 2] - patch[patch_center_indx_inpatch, 2]) ** 2)/Rs_select
+            prob = (d2**alpha)*(1-mean_cos[i])
+            rand = np.random.random_sample(size = len(patch))
+            mask2 = rand < prob
+
+            patch_selected = patch[mask2, :]
+            for k in range(len(patch_selected)):
+                index_in_surface = \
+                np.where((surf[:, 0] == patch_selected[k, 0]) & (surf[:, 1] == patch_selected[k, 1]) & (surf[:, 2] == patch_selected[k, 2]))[0]
+                if index_in_surface not in np.array(index_possible):
+                    index_possible.append(index_in_surface)
+                # delete = np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
+                #                delete_index.append(delete)
+                delete_index.append(index_in_surface)
+
+
+       #     for k in range(len(patch)):
+       #         distance = (math.sqrt((patch[k, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[k, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
+       #                 patch[k, 2] - patch[patch_center_indx_inpatch, 2]) ** 2))/Rs_select
+       #         if screening == "index_continuous_distribution":
+       #             prob = (alpha*(distance**2)+(1-alpha)*distance)*(1-mean_cos[i])
+       #         else:
+       #             prob = (distance**alpha)*(1-mean_cos[i])
+       #         rand = random.random()
+       #         index_in_surface = \
+       #         np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
+       #         if rand < prob:
+       #             if index_in_surface not in np.array(index_possible):
+       #                 index_possible.append(index_in_surface)
+               # delete = np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
+               # delete_index.append(delete)
+       #         delete_index.append(index_in_surface)
 
     index_possible_area = sorted(index_possible)
 
@@ -293,7 +315,7 @@ def cart2polar(pca, centroid):
     return(theta, radius)
 
 
-def PCA(x):
+def PCA(x, n_components):
     X = x.transpose()
     cov_mat = np.cov(X, rowvar=False)
     # Calculating Eigenvalues and Eigenvectors of the covariance matrix
@@ -306,7 +328,7 @@ def PCA(x):
 
     # select the first n eigenvectors, n is desired dimension
     # of our final reduced data.
-    n_components = 2  # you can select any number of components.
+  # you can select any number of components.
     eigenvector_subset = sorted_eigenvectors[:, 0:n_components]
     eigen_values = sorted_eigenvalue[0:n_components]
 
@@ -314,7 +336,7 @@ def PCA(x):
     # X_reduced = np.dot(eigenvector_subset.transpose(), X_meaned.transpose()).transpose()
     X_reduced = np.dot(eigenvector_subset.transpose(), X.transpose()).transpose()
 
-    return(X_reduced, eigenvector_subset, eigen_values)
+    return(X_reduced, eigenvector_subset, eigen_values, sorted_eigenvalue)
 
 
 
