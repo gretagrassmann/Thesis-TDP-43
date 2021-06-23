@@ -5,6 +5,8 @@ import shutil
 import my_functions
 import sys
 from scipy.signal import savgol_filter
+import random
+import statistics
 
 screening = "index_continuous_distribution_exp"
 
@@ -12,12 +14,17 @@ screening = "index_continuous_distribution_exp"
 with open('configuration.txt') as f:
     for line in f:
         exec(line)
-fragment = 208
-cluster = 1
+fragment = 220
+cluster = 2
 R_zernike = 6
 Rs_select = 4
 ver = 1
-alpha = [1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19.
+alpha = [
+         -25., -24., -23., -22., -21., -20.,
+         -19., -18., -17., -16., -15., -14., -13., -11., -10.,
+         -9., -8., -7., -6., -5., -4., -3., -2., -1.,
+    1., 2., 3., 4., 5., 6., 7., 8., 9.
+         , 10., 11., 12., 13., 14., 15., 16., 17., 18., 19.
          , 20., 21., 22., 23., 24., 25., 26., 27., 28., 29.
          , 30., 31., 32., 33., 34., 35., 36., 37., 38., 39.
          , 40., 41., 42., 43., 44., 45., 46., 47., 48., 49.
@@ -26,9 +33,11 @@ alpha = [1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 
          , 70., 71., 72., 73., 74., 75., 76., 77., 78., 79.
          , 80., 81., 82., 83., 84., 85., 86., 87., 88., 89.
          , 90., 91., 92., 93., 94., 95., 96.
-    , 100., 120., 150., 180., 210.
-            , 240., 270., 300., 330., 360., 390.,
-             420., 450., 480., 510.
+         #, 200.
+         #,300.
+         #   , 100., 120., 150., 180., 210.
+         #   , 240., 270., 300., 330., 360., 390.,
+         #    420., 450., 480., 510.
             #      , 540., 570., 600., 630., 660.,
             # 690., 720., 750., 780., 810.
             # ,840., 870., 900., 930., 960., 990., 1000., 2000., 3000.
@@ -57,24 +66,42 @@ if o == "y":
             index_possible_points = list(set([int(float(x)) for x in f.read().split()]))
             alpha_points_plot.append(len(index_possible_points))
 
+
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     ax1.set_xlabel('$\\alpha$ value')
-    ax1.set_ylabel("Number of sampled points")
+    ax1.set_ylabel("Number of sampled points over {} points".format(lag))
     plt.plot(alpha, alpha_points_plot)
     plt.show()
 
 print("Vuoi vedere i grafici gia' ottenuti? y o n?")
 o = input()
 if o == 'y':
+    alpha_random = [ -20., -10., 1., 10., 20., 30., 40., 50., 60., 70., 80., 90.]
+
     zernike_euclidean = np.loadtxt("{}\zernike_euclidean.txt".format(respath))
     z_euclidean_alpha = np.loadtxt("{}\z_euclidean_alpha.txt".format(respath))
+
+    min_norm = min(zernike_euclidean)
+    min_alpha = z_euclidean_alpha[np.where(min_norm==zernike_euclidean)[0][0]]
+
+    random_norm_alpha = np.loadtxt("{}\\random_norm_alpha.txt".format(respath))
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     ax1.set_xlabel('$\\alpha$ value')
     ax1.set_ylabel("Distance between Zernike coefficients")
     plt.plot(z_euclidean_alpha, zernike_euclidean, label='Selected by sampling')
+    plt.plot(min_alpha,min_norm, '*', label='Minimum at $\\alpha$={}'.format(min_alpha))
+    leg = ax1.legend()
+
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xlabel('$\\alpha$ value')
+    ax1.set_ylabel("Distance between Zernike coefficients")
+    plt.plot(z_euclidean_alpha, zernike_euclidean, label='Selected by sampling')
+    plt.plot(alpha_random, random_norm_alpha, label='Randomly selected')
     leg = ax1.legend()
 
     plt.show()
@@ -102,9 +129,9 @@ if o == 'y':
                              removed_surface[:, 2] - surf[i, 2]) ** 2
             mask = d2 <= Rs_select ** 2
             zernike_patch = removed_zernike[:, mask]
-
-            euc_dist_point = np.linalg.norm(np.array(zernike_patch) - np.array(zernike_point), axis=0)
-            zernike_point_mean.append(np.mean(euc_dist_point))
+            if len(zernike_patch[1]) != 0:
+                euc_dist_point = np.linalg.norm(np.array(zernike_patch) - np.array(zernike_point), axis=0)
+                zernike_point_mean.append(np.mean(euc_dist_point))
 
         zernike_alpha.append(np.mean(zernike_point_mean))
 
@@ -118,6 +145,52 @@ if o == 'y':
     ax1.set_ylabel("Zernike coefficients' mean euclidean distance")
     plt.plot(alpha, zernike_alpha)
     leg = ax1.legend()
+    plt.show()
+
+
+print('Vuoi studiare il caso random? y o n?')
+o = input()
+if o == 'y':
+    alpha_random = [ -20., -10., 1., 10., 20., 30., 40., 50., 60., 70., 80., 90.]
+    random_norm_alpha = []
+    for a in alpha_random:
+        with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, a)) as f:
+            index_possible_points = [int(float(x)) for x in f.read().split()]
+        number_points = len(index_possible_points)
+
+        random_index_selected = random.sample(list(np.arange(0, lag)), number_points)
+        random_norm_point = []
+        for i in random_index_selected:
+            sys.stderr.write("\r Processing %i out of %i point for alpha = %i" % (i, len(index_possible_points), a))
+            sys.stderr.flush()
+            zernike_random_selected = total[:, [i]]
+
+            d2 = (surf[:, 0] - surf[i, 0]) ** 2 + (
+                    surf[:, 1] - surf[i, 1]) ** 2 + (
+                         surf[:, 2] - surf[i, 2]) ** 2
+            mask = d2 <= Rs_select ** 2
+            mask = d2 != 0
+            zernike_patch = total[:, mask]
+
+            euc_dist_point = np.linalg.norm(np.array(zernike_patch) - np.array(zernike_random_selected), axis=0)
+            random_norm_point.append(np.mean(euc_dist_point))
+        random_norm_alpha.append(np.mean(random_norm_point))
+
+    np.savetxt("{}\\random_norm_alpha.txt".format(respath), random_norm_alpha)
+    np.savetxt("{}\\alpha_random_norm_alpha.txt".format(respath), alpha_random)
+
+
+    zernike_euclidean = np.loadtxt("{}\zernike_euclidean.txt".format(respath))
+    z_euclidean_alpha = np.loadtxt("{}\z_euclidean_alpha.txt".format(respath))
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xlabel('$\\alpha$ value')
+    ax1.set_ylabel("Distance between Zernike coefficients")
+    plt.plot(z_euclidean_alpha, zernike_euclidean, label='Selected by sampling')
+    plt.plot(alpha_random, random_norm_alpha, label='Randomly selected')
+    leg = ax1.legend()
+
     plt.show()
 
 
@@ -139,7 +212,7 @@ if o == 'y':
     ax1.set_ylabel("Zernike coefficients' mean euclidean distance")
     plt.plot(z_euclidean_alpha, zernike_euclidean, label='Original function')
     plt.plot(z_euclidean_alpha, z_euclidean_smooth, label='Smoothed function' )
-    plt.plot(min_alpha, min, '*', label='Minimum at $\\alpha$={}'.format(min_alpha))
+    plt.plot(min_alpha, min, '*', label='Minimum at $\\alpha$={}'.format(min_alpha[0]))
     leg = ax1.legend()
     plt.show()
 
@@ -191,6 +264,34 @@ plt.show()
 
 
 
+print("Vuoi fare la media di tutti i casi? y o n?")
+o = input()
+if o == 'y':
+    z_euclidean_alpha = np.loadtxt("{}\z_euclidean_alpha.txt".format(respath))
+
+    zernike_euclidean_all = np.array(5,len(z_euclidean_alpha))
+    for i in [1,2,3,4,5]:
+        respath = "..\\{}\cluster{}\R_zernike_{}\R_s_{}".format(fragment, i, R_zernike, Rs_select)
+        zernike_euclidean_all(i,:) = np.loadtxt("{}\zernike_euclidean.txt".format(respath))
+
+    print(np.array(zernike_euclidean_all).shape)
+    zernike_euclidean = statistics.mean(zernike_euclidean_all)
+    print(np.array(zernike_euclidean).shape)
+    z_euclidean_alpha = np.loadtxt("{}\z_euclidean_alpha.txt".format(respath))
+
+    min_norm = min(zernike_euclidean)
+    min_alpha = z_euclidean_alpha[np.where(min_norm==zernike_euclidean)[0][0]]
+
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xlabel('$\\alpha$ value')
+    ax1.set_ylabel("Mean distance between Zernike coefficients")
+    plt.plot(z_euclidean_alpha, zernike_euclidean, label='Averaged over all the configurations of fragment A')
+    plt.plot(min_alpha,min_norm, '*', label='Minimum at $\\alpha$={}'.format(min_alpha))
+    leg = ax1.legend()
+
+    plt.show()
 
 
 
@@ -219,3 +320,6 @@ if alpha != "n":
 
     np.savetxt("{}/zernike/zernike_positive/zernike_alpha.dat".format(respath, alpha), zernike_positive_alpha, fmt="%.4e")
     np.savetxt("{}/zernike/zernike_negative/zernike_alpha.dat".format(respath, alpha), zernike_negative_alpha, fmt="%.4e")
+
+
+
