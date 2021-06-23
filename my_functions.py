@@ -95,37 +95,41 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
             d2 = np.sqrt((patch[:, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[:, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
                         patch[:, 2] - patch[patch_center_indx_inpatch, 2]) ** 2)/Rs_select
             prob = (d2**alpha)*(1-mean_cos[i])
-            rand = np.random.random_sample(size = len(patch))
+            rand = np.random.random_sample(size=len(patch))
             mask2 = rand < prob
+
+            mask_reject = rand >= prob
+            patch_reject = patch[mask_reject,:]
+            for k in range(len(patch_reject)):
+                index_in_surface = \
+                    np.where((surf[:, 0] == patch_reject[k, 0]) & (surf[:, 1] == patch_reject[k, 1]) & (
+                                surf[:, 2] == patch_reject[k, 2]))[0][0]
+                delete_index.append(index_in_surface)
+
 
             patch_selected = patch[mask2, :]
             for k in range(len(patch_selected)):
                 index_in_surface = \
-                np.where((surf[:, 0] == patch_selected[k, 0]) & (surf[:, 1] == patch_selected[k, 1]) & (surf[:, 2] == patch_selected[k, 2]))[0]
+                np.where((surf[:, 0] == patch_selected[k, 0]) & (surf[:, 1] == patch_selected[k, 1]) & (surf[:, 2] == patch_selected[k, 2]))[0][0]
                 if index_in_surface not in np.array(index_possible):
                     index_possible.append(index_in_surface)
-                # delete = np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
-                #                delete_index.append(delete)
                 delete_index.append(index_in_surface)
 
 
-       #     for k in range(len(patch)):
-       #         distance = (math.sqrt((patch[k, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[k, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
-       #                 patch[k, 2] - patch[patch_center_indx_inpatch, 2]) ** 2))/Rs_select
-       #         if screening == "index_continuous_distribution":
-       #             prob = (alpha*(distance**2)+(1-alpha)*distance)*(1-mean_cos[i])
-       #         else:
-       #             prob = (distance**alpha)*(1-mean_cos[i])
-       #         rand = random.random()
-       #         index_in_surface = \
-       #         np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
-       #         if rand < prob:
-       #             if index_in_surface not in np.array(index_possible):
-       #                 index_possible.append(index_in_surface)
-               # delete = np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
-               # delete_index.append(delete)
-       #         delete_index.append(index_in_surface)
-
+            #for k in range(len(patch)):
+            #    distance = (math.sqrt((patch[k, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[k, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
+            #            patch[k, 2] - patch[patch_center_indx_inpatch, 2]) ** 2))/Rs_select
+            #    if screening == "index_continuous_distribution":
+            #        prob = (alpha*(distance**2)+(1-alpha)*distance)*(1-mean_cos[i])
+            #    else:
+            #        prob = (distance**alpha)*(1-mean_cos[i])
+            #    rand = random.random()
+            #    index_in_surface = \
+            #    np.where((surf[:, 0] == patch[k, 0]) & (surf[:, 1] == patch[k, 1]) & (surf[:, 2] == patch[k, 2]))[0]
+            #    if rand < prob:
+            #        if index_in_surface not in np.array(index_possible):
+            #            index_possible.append(index_in_surface)
+            #    delete_index.append(index_in_surface)
     index_possible_area = sorted(index_possible)
 
     np.savetxt("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_{}.txt".format(respath, screening, Rs_select, alpha, step),
