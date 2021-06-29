@@ -6,6 +6,9 @@ import math
 import statistics
 import operator
 import random
+import pandas as pd
+import SurfaceFunc as SF
+
 
 def find_nearest_vector2D(array,value):
     dist_2 = np.sum((array - value)**2, axis=1)
@@ -115,6 +118,24 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
                     index_possible.append(index_in_surface)
                 delete_index.append(index_in_surface)
 
+            #if (alpha == -4.) & (p % 10 == 0):
+            #    fragment = 208
+            #    cluster = 1
+            #    r_t = [i + 1 for i in list(index_possible)]
+            #    pdb_file = "..\\{}\cluster{}.dms".format(fragment, cluster)
+            #    surf_total = pd.read_csv(pdb_file, skiprows=r_t)
+            #    surf_tot = np.zeros((len(surf_total['x']), 6))
+            #    surf_tot[:, :] = surf_total[["x", "y", "z", "Nx", "Ny", "Nz"]]
+            #    r = [i + 1 for i in range(ltmp) if (i not in list(index_possible))]
+            #    surf_select = pd.read_csv(pdb_file, skiprows=r)
+            #    surf_a = np.zeros((len(surf_select['x']), 6))
+            #    surf_a[:, :] = surf_select[["x", "y", "z", "Nx", "Ny", "Nz"]]
+                ### To inizialize the Surface class:
+            #    surf_a_obj = SF.Surface(surf_a[:, :], patch_num=0, r0=Rs_select, theta_max=45)
+            #    surf_tot_obj = SF.Surface(surf_tot[:, :], patch_num=0, r0=Rs_select, theta_max=45)
+                ### To plot surface in 3D:
+            #    res1, c = SF.ConcatenateFigPlots([surf_tot_obj.surface[:, :3], surf_a_obj.surface[:, :3]])
+            #    SF.Plot3DPoints(res1[:, 0], res1[:, 1], res1[:, 2], c, 0.3)
 
             #for k in range(len(patch)):
             #    distance = (math.sqrt((patch[k, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[k, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
@@ -130,6 +151,7 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
             #        if index_in_surface not in np.array(index_possible):
             #            index_possible.append(index_in_surface)
             #    delete_index.append(index_in_surface)
+
     index_possible_area = sorted(index_possible)
 
     np.savetxt("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_{}.txt".format(respath, screening, Rs_select, alpha, step),

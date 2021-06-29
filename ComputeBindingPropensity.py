@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 
     ########    PARAMETERS  #######
 fragment1 = 208
-fragment2 = 208
-cluster1 = 3
-cluster2 = 3
+fragment2 = 220
+cluster1 = 5
+cluster2 = 2
 sign1 = 1
 sign2 = -1
 R_zernike = 6
@@ -143,13 +143,12 @@ if o =='y':
             sys.stderr.flush()
             color_1[i] = np.min(ddd)
 
-        if (fragment1 != fragment1) & (cluster1 != cluster2):
-            tmp = np.transpose(zern_1[1:,:])
-            for i in range(l2):
-                sys.stderr.write("\r %d of %d"%(i, l2))
-                sys.stderr.flush()
-                ddd = np.sqrt(np.sum( (tmp-  zern_2[1:,i])**2 , axis=1))
-                color_2[i] = np.min(ddd)
+        tmp = np.transpose(zern_1[1:,:])
+        for i in range(l2):
+            sys.stderr.write("\r %d of %d"%(i, l2))
+            sys.stderr.flush()
+            ddd = np.sqrt(np.sum( (tmp-  zern_2[1:,i])**2 , axis=1))
+            color_2[i] = np.min(ddd)
 
     len_1 = np.shape(surf_alpha_1)[0]
     len_2 = np.shape(surf_alpha_2)[0]
@@ -162,13 +161,12 @@ if o =='y':
     df_1.insert(4,"bs", np.zeros(len_1), True)
     df_1.insert(5,"res", list(rr1), True)
 
-    if (fragment1 != fragment1) & (cluster1 != cluster2):
-        df_2 = pd.DataFrame(surf_alpha_2[:,:3], columns= ["x", "y","z"])
-        df_2.insert(3,"c", color_2, True)
-        df_2.insert(4,"bs", np.zeros(len_2), True)
-        df_2.insert(5,"res", list(rr2), True)
+    df_2 = pd.DataFrame(surf_alpha_2[:,:3], columns= ["x", "y","z"])
+    df_2.insert(3,"c", color_2, True)
+    df_2.insert(4,"bs", np.zeros(len_2), True)
+    df_2.insert(5,"res", list(rr2), True)
 
-        df_2.to_csv("{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2, cluster2, verso2, fragment1, cluster1, verso1))
+    df_2.to_csv("{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2, cluster2, verso2, fragment1, cluster1, verso1))
 
 
 
@@ -195,29 +193,28 @@ if o =='y':
     smoothing1 = pd.DataFrame(smoothing_1, columns= ["smooth"])
     smoothing1.to_csv("{}\smooth_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path1, fragment1, cluster1, verso1, fragment2, cluster2, verso2))
 
-    if (fragment1 != fragment1) & (cluster1 != cluster2):
-        file2 ="{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2, cluster2,
-                                                                                             verso2, fragment1,
-                                                                                           cluster1, verso1)
-        color_2 = pd.read_csv(file2, usecols=['c'], squeeze=True)
+    file2 ="{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2, cluster2,
+                                                                                         verso2, fragment1,
+                                                                                       cluster1, verso1)
+    color_2 = pd.read_csv(file2, usecols=['c'], squeeze=True)
 
-        smoothing_2 = []
-        for i in range(l2):
-            sys.stderr.write("\r Processing %i out of %i point" % (i, l2))
-            sys.stderr.flush()
-            d2 = (surf_alpha_2[:, 0] - surf_alpha_2[i, 0]) ** 2 + (
-                    surf_alpha_2[:, 1] - surf_alpha_2[i, 1]) ** 2 + (
-                         surf_alpha_2[:, 2] - surf_alpha_2[i, 2]) ** 2
-            mask = d2 <= R_zernike ** 2
-            patch = color_2[mask]
-            smoothing_2.append(np.mean(patch))
+    smoothing_2 = []
+    for i in range(l2):
+        sys.stderr.write("\r Processing %i out of %i point" % (i, l2))
+        sys.stderr.flush()
+        d2 = (surf_alpha_2[:, 0] - surf_alpha_2[i, 0]) ** 2 + (
+                surf_alpha_2[:, 1] - surf_alpha_2[i, 1]) ** 2 + (
+                     surf_alpha_2[:, 2] - surf_alpha_2[i, 2]) ** 2
+        mask = d2 <= R_zernike ** 2
+        patch = color_2[mask]
+        smoothing_2.append(np.mean(patch))
 
-        smoothing2 = pd.DataFrame(smoothing_2, columns=["smooth"])
-        smoothing2.to_csv(
-            "{}\smooth_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2,
-                                                                                                  cluster2, verso2,
-                                                                                                  fragment1, cluster1,
-                                                                                                  verso1))
+    smoothing2 = pd.DataFrame(smoothing_2, columns=["smooth"])
+    smoothing2.to_csv(
+        "{}\smooth_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2,
+                                                                                              cluster2, verso2,
+                                                                                              fragment1, cluster1,
+                                                                                              verso1))
 
 print('Vuoi passare ai resiudi?')
 o = input()
@@ -239,35 +236,34 @@ if o == 'y':
                                                                                               fragment2, cluster2,
                                                                                               verso2))
 
-    if (fragment1 != fragment1) & (cluster1 != cluster2):
-        smooth_point = pd.DataFrame()
-        file_point = "{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2,
-                                                                                                             fragment2,
-                                                                                                             cluster2,
-                                                                                                             verso2,
-                                                                                                             fragment1,
-                                                                                                             cluster1,
-                                                                                                             verso1)
-        file_smooth = "{}\smooth_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2,
-                                                                                                            fragment2,
-                                                                                                            cluster2,
-                                                                                                            verso2,
-                                                                                                            fragment1,
-                                                                                                            cluster1,
-                                                                                                            verso1)
+    smooth_point = pd.DataFrame()
+    file_point = "{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2,
+                                                                                                         fragment2,
+                                                                                                         cluster2,
+                                                                                                         verso2,
+                                                                                                         fragment1,
+                                                                                                         cluster1,
+                                                                                                         verso1)
+    file_smooth = "{}\smooth_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2,
+                                                                                                        fragment2,
+                                                                                                        cluster2,
+                                                                                                        verso2,
+                                                                                                        fragment1,
+                                                                                                        cluster1,
+                                                                                                        verso1)
 
-        smooth_point['res'] = pd.read_csv(file_point, usecols=['res'], squeeze=True)
-        smooth_point['smooth'] = pd.read_csv(file_smooth, usecols=['smooth'], squeeze=True)
+    smooth_point['res'] = pd.read_csv(file_point, usecols=['res'], squeeze=True)
+    smooth_point['smooth'] = pd.read_csv(file_smooth, usecols=['smooth'], squeeze=True)
 
-        smooth_point['average'] = smooth_point.groupby('res', as_index=False)['smooth'].transform('mean')
-        smooth_res = smooth_point.drop_duplicates(subset='res', keep="first", inplace=False)
+    smooth_point['average'] = smooth_point.groupby('res', as_index=False)['smooth'].transform('mean')
+    smooth_res = smooth_point.drop_duplicates(subset='res', keep="first", inplace=False)
 
-        smooth_res.to_csv(
-            "{}\smooth_RES_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2,
-                                                                                                      cluster2, verso2,
-                                                                                                      fragment1,
-                                                                                                      cluster1,
-                                                                                                      verso1))
+    smooth_res.to_csv(
+        "{}\smooth_RES_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2,
+                                                                                                  cluster2, verso2,
+                                                                                                  fragment1,
+                                                                                                  cluster1,
+                                                                                                  verso1))
 
 
 
@@ -287,18 +283,21 @@ if o == 'y':
     plt.title('Binding propensity between cluster {} of fragment {} and cluster {} of fragment {}'.format(cluster1-1,fragment1,cluster2-1, fragment2), fontsize=10)
     plt.show()
 
-    if (fragment1 != fragment1) & (cluster1 != cluster2):
-        file2 ="{}\smooth_RES_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2, cluster2,
-                                                                                             verso2, fragment1,
-                                                                                     cluster1, verso1)
-        smooth = np.loadtxt(file2)
+    file2 ="{}\smooth_RES_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path2, fragment2, cluster2,
+                                                                                         verso2, fragment1,
+                                                                                 cluster1, verso1)
+    smooth = pd.read_csv(file2, usecols=['average'], squeeze=True)
+    res = pd.read_csv(file2, usecols=['res'], squeeze=True)
 
-        fig = plt.figure()
-        ax1 = fig.add_subplot(111)
-
-        ax1.set_xlabel('Index of the residues of the cluster {} of fragment {}'.format(cluster2-1, fragment2))
-        ax1.set_ylabel("Smoothed binding propensity")
-        plt.plot(smooth)
-        plt.title('Binding propensity between cluster {} of fragment {} and cluster {} of fragment {}'.format(
-                     cluster2-1, fragment2, cluster1-1, fragment1))
-        plt.show()
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xlabel('Index of the residues of the cluster {} of fragment {}'.format(cluster2 - 1, fragment2))
+    ax1.set_ylabel("Smoothed binding propensity")
+    plt.plot(smooth)
+    plt.title(
+        'Binding propensity between cluster {} of fragment {} and cluster {} of fragment {}'.format(cluster2 - 1,
+                                                                                                    fragment2,
+                                                                                                    cluster1 - 1,
+                                                                                                    fragment1),
+        fontsize=10)
+    plt.show()

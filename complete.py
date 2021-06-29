@@ -12,13 +12,23 @@ with open('configuration.txt') as f:
     for line in f:
         exec(line)
 
-alpha = [30., 60., 90., 120., 150., 180., 210., 240., 270., 300., 330., 360., 390.,
-         420., 450., 480., 510., 540., 570., 600., 630., 660.,
-         690., 720., 750., 780., 810.]
-
+alpha = [
+    #-25., -24., -23., -22., -21., -20.,
+    #     -19., -18., -17., -16., -15., -14.,-13., -11., -10.,
+        -9., -8., -7., -6., -5., -4., -3., -2., -1.,
+         1., 2., 3., 4., 5., 6., 7., 8., 9.
+         , 10., 11., 12., 13., 14., 15., 16., 17., 18., 19.
+         , 20., 21., 22., 23., 24., 25., 26., 27., 28., 29.
+         , 30., 31., 32., 33., 34., 35., 36., 37., 38., 39.
+         , 40., 41., 42., 43., 44., 45., 46., 47., 48., 49.
+         , 50., 51., 52., 53., 54., 55., 56., 57., 58., 59.
+         , 60., 61., 62., 63., 64., 65., 66., 67., 68., 69.
+         ,  70., 71., 72., 73., 74., 75., 76., 77., 78., 79.
+         , 80., 81., 82., 83., 84., 85., 86., 87., 88., 89.
+         , 90., 91., 92., 93., 94., 95., 96.
+          ]
 screening = "index_continuous_distribution_exp"
 
-#number_crowns = 20
 #R_zernike = 6
 Rs_select = 4
 fragment = 208
@@ -49,6 +59,37 @@ surf_obj_scan = SF.Surface(surf[:, :], patch_num=0, r0=Rs_select, theta_max=45)
 ltmp = np.shape(surf)[0]
 
 
+
+print('Vuoi vedere i coseni nella superifice?')
+o = input()
+if o == 'y':
+    res, c = SF.ConcatenateFigPlots(list_=[surf[:, :3]])
+    c1 = np.loadtxt("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select))
+    SF.Plot3DPoints(res[:, 0], res[:, 1], res[:, 2], color=c1)
+
+print("Vuoi fare il MEGA LOOP? y o n?")
+o = input()
+if o == "y":
+    alpha_neg = [ -20., -10.
+                  ]
+    for fragment in [208, 220]:
+        if fragment == 208:
+            clusters = [2]
+        else:
+            clusters = [1, 2]
+        for cluster in clusters:
+            pdb_file = "..\\{}\cluster{}.dms".format(fragment, cluster)
+            respath = "..\\{}\cluster{}\R_zernike_{}\R_s_{}".format(fragment, cluster, R_zernike, Rs_select)
+            with open("{}\COSINE_step_{}_Rs_{}.txt".format(respath, step, Rs_select)) as f:
+                #mean_cos = [2 * (float(x)) - 1 for x in f.read().split()]
+                mean_cos = [float(x) for x in f.read().split()]
+            for i in alpha_neg:
+        #        index_possible_area = my_functions.NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
+        #        index_possible_area = my_functions.PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
+        #        index_possible_area = my_functions.CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, number_crowns)
+                index_possible_area = my_functions.ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
+
+                print('Ended fragment {} cluster {}'.format(fragment, cluster))
 
             ################## ZERNIKE PER OGNI SINGOLO PUNTO   #####################
 print("Vuoi fare ZERNIKE per OGNI {} PUNTI? y o n?".format(Npoint))
@@ -135,7 +176,4 @@ if o == "y":
         #mean_cos = [2 * (float(x)) - 1 for x in f.read().split()]
         mean_cos = [float(x) for x in f.read().split()]
     for i in alpha:
-#        index_possible_area = my_functions.NewCosScanning(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
-#        index_possible_area = my_functions.PercentageScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath)
-#        index_possible_area = my_functions.CosDistributionScreening(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, number_crowns)
-        index_possible_area = my_functions.ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
+       index_possible_area = my_functions.ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
