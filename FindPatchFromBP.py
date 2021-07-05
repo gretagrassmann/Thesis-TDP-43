@@ -1,25 +1,19 @@
 #!/usr/bin/env python
-
-
 import os, sys
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as mpl
-
 import pandas as pd
 from mayavi import mlab
-
-
-
 import SurfaceFunc as SF
 import matplotlib.pyplot as plt
 import openpyxl
 
     ########    PARAMETERS  #######
-fragment1 = 208
+fragment1 = 220
 fragment2 = 220
 cluster1 = 5
-cluster2 = 2
+cluster2 = 5
 sign1 = 1
 sign2 = -1
 R_zernike = 6
@@ -72,15 +66,16 @@ def Smoothing(data, col, radius):
         
     return(newcol)
 
-print('Vuoi vedere il grafico per ciascun frammento?')
-o = input()
+#print('Vuoi vedere il grafico per ciascun frammento?')
+#o = input()
+o = 'y'
 if o =='y':
-    for i in [220, 208]:
+    for i in [220]:
         if i == 220:
-            j = [1, 2]
+            j = [1, 2, 3, 4, 5]
             frag = 'B'
         else:
-            j = [1,2,3,4,5]
+            j = [1, 2, 3, 4, 5]
             frag = 'A'
         for ii in j:
             pdb_file = "..\\{}\cluster{}.dms".format(i, ii)
@@ -96,7 +91,7 @@ if o =='y':
             fragment_results['cluster'] = pd.read_csv(file, usecols=['cluster'])
             fragment_results = fragment_results[fragment_results.cluster.isin([ii])]
             fragment_bp = pd.DataFrame()
-            fragment_bp = fragment_results.groupby('res', as_index=False)['BP'].sum()
+            fragment_bp = fragment_results.groupby('res', as_index=False)['BP'].sum() #!!!! .SUM() AT THE BEGINNING
             interacting_res = list(fragment_bp['res'])
             fragment_bp = fragment_bp.set_index('res')
 
@@ -190,9 +185,6 @@ if o == 'y':
     plt.show()
 
 
-
-
-
 PLOT = 0
 
 Rsmooth = 6  #A, the radius of the sphere to be used in the smoothing procedure..
@@ -229,7 +221,7 @@ if o == 'y':
         if fragment2 == 208:
             clusters = [1,2,3,4,5]
         else:
-            clusters = [1,2]
+            clusters = [1,2, 3, 4, 5]
         for cluster2 in clusters:
             verso1 = 'positive'
             verso2 = 'negative'
@@ -452,11 +444,5 @@ for i in range(len(labs_2)):
     print("")
 
 
-bp_mean_residues1.to_csv('..\..\..\complementarity_regions\\{}.csv'.format(fragment1), mode='a', header=False)
-bp_mean_residues2.to_csv('..\..\..\complementarity_regions\\{}.csv'.format(fragment2), mode='a', header=False)
-
-
-
-#print('Choose the lowest mean value')
-#print(bp1)
-#print(bp2)
+#bp_mean_residues1.to_csv('..\..\..\complementarity_regions\\{}.csv'.format(fragment1), mode='a', header=False)
+#bp_mean_residues2.to_csv('..\..\..\complementarity_regions\\{}.csv'.format(fragment2), mode='a', header=False)

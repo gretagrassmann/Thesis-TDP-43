@@ -9,10 +9,10 @@ import csv
 import matplotlib.pyplot as plt
 
     ########    PARAMETERS  #######
-fragment1 = 208
+fragment1 = 220
 fragment2 = 220
 cluster1 = 5
-cluster2 = 2
+cluster2 = 5
 sign1 = 1
 sign2 = -1
 R_zernike = 6
@@ -38,7 +38,6 @@ path2  = "..\\{}\cluster{}\R_zernike_{}\R_s_{}\zernike".format(fragment2, cluste
 
 #with open("{}\index_alpha.txt".format(path1)) as f:
 #    index_possible_points1 = [int(float(x)) for x in f.read().split()]
-
 surf_total1_ = pd.read_csv(pdb_file1)
 lag1 = len(surf_total1_["x"])
 surf_total1 = np.zeros((lag1, 6))
@@ -54,8 +53,6 @@ rr1 = surf_total1_["Res"][::Npoint1]
 
 #with open("{}\index_alpha.txt".format(path2)) as f:
 #    index_possible_points2 = [int(float(x)) for x in f.read().split()]
-
-
 surf_total2_ = pd.read_csv(pdb_file2)
 lag2 = len(surf_total2_["x"])
 surf_total2 = np.zeros((lag2, 6))
@@ -70,7 +67,6 @@ rr2 = surf_total2_["Res"][::Npoint2]
 try:
    # zern_1 = np.loadtxt("{}\zernike_{}\zernike_alpha.dat".format(path1, verso1))
    # zern_2 = np.loadtxt("{}\zernike_{}\zernike_alpha.dat".format(path2, verso2))
-
     zern_1 = np.loadtxt("{}\zernike_{}\zernike_total.dat".format(path1, verso1))
     zern_2 = np.loadtxt("{}\zernike_{}\zernike_total.dat".format(path2, verso2))
 except:
@@ -172,8 +168,14 @@ if o =='y':
 
     df_1.to_csv("{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path1, fragment1, cluster1, verso1, fragment2, cluster2, verso2))
 
-print('Vuoi fare la media delle binding propensity?')
-o=input()
+
+
+        ################# DA QUA IN POI NON E' UTILE: VAI A FindPatchFromBP.py  ############################
+
+
+#print('Vuoi fare la media delle binding propensity?')
+#o=input()
+o == 'n'
 if o =='y':
     file1 ="{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path1, fragment1, cluster1, verso1, fragment2, cluster2, verso2)
     color_1 = pd.read_csv(file1, usecols=['c'], squeeze=True)
@@ -216,8 +218,8 @@ if o =='y':
                                                                                               fragment1, cluster1,
                                                                                               verso1))
 
-print('Vuoi passare ai resiudi?')
-o = input()
+#print('Vuoi passare ai resiudi?')
+#o = input()
 if o == 'y':
     smooth_point = pd.DataFrame()
     file_point ="{}\BindProp_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path1, fragment1, cluster1, verso1, fragment2, cluster2, verso2)
@@ -268,8 +270,8 @@ if o == 'y':
 
 
 
-print('Vuoi vedere il grafico della b p s?')
-o = input()
+#print('Vuoi vedere il grafico della b p s?')
+#o = input()
 if o == 'y':
     file1 ="{}\smooth_RES_fragment{}_cluster{}_verso_{}_VS_fragment{}_cluster{}_verso_{}.csv".format(path1, fragment1, cluster1, verso1, fragment2, cluster2, verso2)
     smooth = pd.read_csv(file1, usecols=['average'], squeeze=True)

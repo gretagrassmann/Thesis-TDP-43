@@ -31,10 +31,10 @@ screening = "index_continuous_distribution_exp"
 
 #R_zernike = 6
 Rs_select = 4
-fragment = 208
-cluster = 2
+fragment = 220
+cluster = 5
 #step = 1
-verso = float(1)
+verso = float(-1)
 #Npoint = int(1)
 
     ###################################   END PARAMETERS    ###########
@@ -57,6 +57,38 @@ surf[:, :] = surf_[["x", "y", "z", "Nx", "Ny", "Nz"]]
 surf_obj = SF.Surface(surf[:, :], patch_num=0, r0=R_zernike, theta_max=45)
 surf_obj_scan = SF.Surface(surf[:, :], patch_num=0, r0=Rs_select, theta_max=45)
 ltmp = np.shape(surf)[0]
+
+print("Vuoi vedere il numero di punti in funzione di alpha? y o n?")
+o = input()
+if o == "y":
+    alpha = [
+        #-25., -24., -23., -22., -21., -20.,
+        #-19., -18., -17., -16., -15., -14., -13., -11., -10.,
+        -9., -8., -7., -6., -5., -4., -3., -2., -1.,
+         1., 2., 3., 4., 5., 6., 7., 8., 9.
+        , 10., 11., 12., 13., 14., 15., 16., 17., 18., 19.
+        , 20., 21., 22., 23., 24., 25., 26., 27., 28., 29.
+        , 30., 31., 32., 33., 34., 35., 36., 37., 38., 39.
+        , 40., 41., 42., 43., 44., 45., 46., 47., 48., 49.
+        , 50., 51., 52., 53., 54., 55., 56., 57., 58., 59.
+        , 60., 61., 62., 63., 64., 65., 66., 67., 68., 69.
+        , 70., 71., 72., 73., 74., 75., 76., 77., 78., 79.
+        , 80., 81., 82., 83., 84., 85., 86., 87., 88., 89.
+        , 90., 91., 92., 93., 94., 95., 96.
+    ]
+    alpha_points_plot = []
+    for a in alpha:
+        with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, a)) as f:
+            index_possible_points = list(set([int(float(x)) for x in f.read().split()]))
+            alpha_points_plot.append(len(index_possible_points))
+
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xlabel('$\\alpha$ value')
+    ax1.set_ylabel("Number of sampled points over {} points".format(lag))
+    plt.plot(alpha, alpha_points_plot)
+    plt.show()
 
 
 
