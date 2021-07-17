@@ -8,6 +8,7 @@ import operator
 import random
 import pandas as pd
 import SurfaceFunc as SF
+from collections import OrderedDict
 
 
 def find_nearest_vector2D(array,value):
@@ -29,6 +30,34 @@ def find_nearest_vector(array,value):
 
 
 ################ POINTS SCREENING ########################
+def RapidCos(ltmp, surf, surf_obj_scan, respath, Rs_select, step):
+    index_possible_area_total = np.arange(0, ltmp, step)
+
+    mean_cos_surface = []
+    for i in index_possible_area_total:
+        sys.stderr.write(("\r Processing point {} out of {} for the cosine".format(i, ltmp)))
+        sys.stderr.flush()
+        patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
+        if len(patch) <= 1:
+            mean_cos = 1
+        else:
+            # PER CIASCUN PATCH TROVO LA MEDIA DEI COSENI
+            normal_v = patch[:, 3:6]
+            mean_v = np.mean(normal_v, axis=0).reshape(1,3)
+            #num = np.absolute(np.dot(mean_v, normal_v.T))
+            num = np.dot(mean_v, normal_v.T)
+            p1 = np.sqrt(np.sum(mean_v**2,axis=1))[:,np.newaxis]
+            p2 = np.sqrt(np.sum(normal_v**2, axis=1))[np.newaxis,:]
+            cos = num/(p1*p2)
+
+            if np.mean(cos) >= 0:
+                mean_cos = np.mean(cos)
+            else:
+                mean_cos = 0.
+        mean_cos_surface.append(mean_cos)
+    np.savetxt("{}\COSINE_step_{}_Rs_{}_FAST.txt".format(respath, step, Rs_select), mean_cos_surface)
+    print("Number of considered patches={}".format(len(mean_cos_surface)))
+    return ()
 
 
 def CosWithoutScaling(surf, surf_obj_scan, respath, Rs_select, step ):
@@ -78,7 +107,6 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
             sys.stderr.write(("\r Processing point {} out of {} for the screening with alpha={}".format(i, ltmp, alpha)))
             sys.stderr.flush()
             patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
-
             # Ogni volta prendo il centro: qua trovo il centro
             patch_center_indx_inpatch = np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
             # Se quando ho costruito la patch ho cancellato il punto di partenza per pulirla, prendo come centro il punto piu' vicino
@@ -91,9 +119,10 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
                 index_possible.append(i)
                 delete_index.append(i)
 
-
             # Ora calcolo per ciascun punto la distanza dal centro e la normalizzo. Poi estraggo un numero casuale: se e' minore
             # della prob considero quel punto
+
+
 
             d2 = np.sqrt((patch[:, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (patch[:, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
                         patch[:, 2] - patch[patch_center_indx_inpatch, 2]) ** 2)/Rs_select
@@ -161,7 +190,111 @@ def ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, alpha, step
     return ()
 
 
+################################## VERSIONE FAST DI CONTINUOUS DISTRIBUTION #####################
+def ContinuousDistributionFast(ltmp, mean_cos, surf, surf_obj_scan, Rs_select, alpha, step, respath, screening):
+    index_possible_area_total = np.arange(0, ltmp, step)
+    index_possible = []
+    delete_index = []
+    for i in index_possible_area_total:
+        if i not in delete_index:
+            sys.stderr.write(
+                ("\r Processing point {} out of {} for the screening with alpha={}".format(i, ltmp, alpha)))
+            sys.stderr.flush()
+            patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
+            delete_index = delete_index + [x for x in range(len(mask)) if mask[x] == True]
+            delete_index = list(OrderedDict.fromkeys(delete_index))
+            delete_index = sorted(delete_index)
 
+            # Ogni volta prendo il centro: qua trovo il centro
+            patch_center_indx_inpatch = \
+            np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
+            # Se quando ho costruito la patch ho cancellato il punto di partenza per pulirla, prendo come centro il punto piu' vicino
+            if patch_center_indx_inpatch.size == 0:
+                patch_center_indx_inpatch = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
+                patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch, 0]) & (
+                            surf[:, 1] == patch[patch_center_indx_inpatch, 1]) & (
+                                                    surf[:, 2] == patch[patch_center_indx_inpatch, 2]))[0][0]
+                index_possible.append(patch_center)
+            else:
+                index_possible.append(i)
+
+            # Ora calcolo per ciascun punto la distanza dal centro e la normalizzo. Poi estraggo un numero casuale: se e' minore
+            # della prob considero quel punto
+            d2 = np.sqrt((patch[:, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (
+                        patch[:, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
+                                 patch[:, 2] - patch[patch_center_indx_inpatch, 2]) ** 2)/Rs_select
+            prob = (d2 ** alpha) * (1 - mean_cos[i])
+            rand = np.random.random_sample(size=len(patch))
+            mask2 = rand < prob
+
+            patch_selected = patch[mask2, :]
+            for k in range(len(patch_selected)):
+                index_in_surface = \
+                    np.where((surf[:, 0] == patch_selected[k, 0]) & (surf[:, 1] == patch_selected[k, 1]) & (
+                                surf[:, 2] == patch_selected[k, 2]))[0][0]
+                index_possible.append(index_in_surface)
+                index_possible = list(OrderedDict.fromkeys(index_possible))
+    index_possible_area = sorted(index_possible)
+
+    np.savetxt(
+        "{}\{}\index_possible_area_R_s_{}_alpha_{}_step_{}.txt".format(respath, screening, Rs_select, alpha, step),
+        index_possible_area)
+    print("\r number of points for R_s={},alpha={},step={} =".format(Rs_select, alpha, step), len(index_possible_area))
+
+    return ()
+
+############################# VERSIONE EDOARDO & MATTIA    #################
+def NewDistribution(a,b,g,d,ltmp, mean_cos, surf, surf_obj_scan, Rs_select, step, respath):
+    index_possible_area_total = np.arange(0, ltmp, step)
+    index_possible = []
+    delete_index = []
+    for i in index_possible_area_total:
+        if i not in delete_index:
+            sys.stderr.write(
+                ("\r Processing point {} out of {} for the screening with alpha={},beta={},gamma={},delta={}".format(i,ltmp,a,b,g,d)))
+            sys.stderr.flush()
+            patch, mask = surf_obj_scan.BuildPatch(point_pos=i, Dmin=.5)
+            delete_index = delete_index + [x for x in range(len(mask)) if mask[x] == True]
+            delete_index = list(OrderedDict.fromkeys(delete_index))
+            delete_index = sorted(delete_index)
+
+            # Ogni volta prendo il centro: qua trovo il centro
+            patch_center_indx_inpatch = \
+            np.where((patch[:, 0] == surf[i, 0]) & (patch[:, 1] == surf[i, 1]) & (patch[:, 2] == surf[i, 2]))[0]
+            # Se quando ho costruito la patch ho cancellato il punto di partenza per pulirla, prendo come centro il punto piu' vicino
+            if patch_center_indx_inpatch.size == 0:
+                patch_center_indx_inpatch = find_nearest_vector(patch[:, 0:3], surf[i, 0:3])
+                patch_center = np.where((surf[:, 0] == patch[patch_center_indx_inpatch, 0]) & (
+                            surf[:, 1] == patch[patch_center_indx_inpatch, 1]) & (
+                                                    surf[:, 2] == patch[patch_center_indx_inpatch, 2]))[0][0]
+                index_possible.append(patch_center)
+            else:
+                index_possible.append(i)
+
+            # Ora calcolo per ciascun punto la distanza dal centro e la normalizzo. Poi estraggo un numero casuale: se e' minore
+            # della prob considero quel punto
+            d2 = np.sqrt((patch[:, 0] - patch[patch_center_indx_inpatch, 0]) ** 2 + (
+                        patch[:, 1] - patch[patch_center_indx_inpatch, 1]) ** 2 + (
+                                 patch[:, 2] - patch[patch_center_indx_inpatch, 2]) ** 2)/Rs_select
+            prob = a*(1.-mean_cos[i])**(b)*d2**(g*(1+mean_cos[i])+d)
+            #prob = alpha*d2**(beta*(1+mean_cos[i]))
+            rand = np.random.random_sample(size=len(patch))
+            mask2 = rand < prob
+
+            patch_selected = patch[mask2, :]
+            for k in range(len(patch_selected)):
+                index_in_surface = \
+                    np.where((surf[:, 0] == patch_selected[k, 0]) & (surf[:, 1] == patch_selected[k, 1]) & (
+                                surf[:, 2] == patch_selected[k, 2]))[0][0]
+                index_possible.append(index_in_surface)
+                index_possible = list(OrderedDict.fromkeys(index_possible))
+    index_possible_area = sorted(index_possible)
+
+    np.savetxt("{}\EDOTTIA\\a{}_b{}_g{}_d{}.txt".format(respath, a,b,g,d),index_possible_area)
+    print("\r number of points for alpha={},beta={}, gamma={}, delta={} =".format(a,b,g,d), len(index_possible_area))
+
+    return ()
+#################################################################################
 
 
 
