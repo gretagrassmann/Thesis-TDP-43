@@ -1,21 +1,17 @@
 import os, sys
+
+import matplotlib
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from pandas import DataFrame
+from matplotlib import cm
 import random
-import matplotlib.ticker as mtick
-
 from scipy import interpolate
-from matplotlib.ticker import FuncFormatter
 import ZernikeFunc as ZF
 import SurfaceFunc as SF
-import seaborn as sns
 import my_functions
-import shutil
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
+
         ######################## PARAMETERS #########
 with open('configuration.txt') as f:
     for line in f:
@@ -62,10 +58,10 @@ o = input()
 if o == 'y':
     with open("{}\COSINE_step_{}_Rs_{}_FAST.txt".format(respath, step, Rs_select)) as f:
         mean_cos = [float(x) for x in f.read().split()]
-    alpha1 = [.1, .2, .4, .6, .8, 1.]
-    beta = [0., .2, .4, .6, .8, 1.]
-    gamma = [0., 2., 4., 6., 8., 10.]
-    delta = [0., 2., 4., 6., 8., 10.]
+    alpha1 = [0.95]
+    beta = [1.]
+    gamma = [0.]
+    delta = [4.0]
 
     for a in alpha1:
         for b in beta:
@@ -73,33 +69,110 @@ if o == 'y':
                 for d in delta:
                     my_functions.NewDistribution(a,b,g,d,ltmp, mean_cos, surf, surf_obj_scan, Rs_select, step, respath)
 
+######################## PARAMETRI PER I PROSSIMI DUE STEP
+frac_test = 200
+PLOT = 0
+alpha1 = [.1, .2, .4, .6, .8, 1.]
+beta = [0., .2, .4, .6, .8, 1.]
+gamma = [.0, 2., 4., 6., 8., 10.]
+delta = [.0, 2., 4., 6., 8., 10.]
+
+caso = 1
+
+###### ORIGINALE
+if caso ==1:
+    alpha1 = [1.]
+    p_1 = alpha1 # FIXED FOR EACH PLOT OF THE #POINTS
+    p_2 = beta  # FIXED FOR EACH PLOT OF THE #POINTS
+    p_3 = gamma  # IN EACH PLOT THERE IS A LINE FOR EACH p_3
+    p_4 = delta  # PARAMETERS ON THE X-AXIS
+    fixed_1 = '$\\alpha$' #p_1
+    fixed_2 = '$\\beta$' #p_2
+    line = '$\\gamma$' #p_3
+    x_ax = '$\\delta$'  #p_4
+    aa = 'alpha' #p_1
+    bb = 'beta' #p_2
+    gg = 'gamma' #p_3
+    dd = 'delta' #p_4
+
+#### CASO B=0, G=0     ###########!!! CASO B=1, G=0 stessa cosa ovviamente
+if caso == 2:
+    beta = [1.]
+    gamma = [0.]
+    p_1 = beta # FIXED FOR EACH PLOT OF THE #POINTS
+    p_2 = gamma  # FIXED FOR EACH PLOT OF THE #POINTS
+    p_3 = alpha1  # IN EACH PLOT THERE IS A LINE FOR EACH p_3
+    p_4 = delta  # PARAMETERS ON THE X-AXIS
+    fixed_1 = '$\\beta$' #p_1
+    fixed_2 = '$\\gamma$' #p_2
+    line = '$\\alpha$' #p_3
+    x_ax = '$\\delta$'  #p_4
+    aa = 'beta' #p_1
+    bb = 'gamma' #p_2
+    gg = 'alpha' #p_3
+    dd = 'delta' #p_4
+
+#### CASO G=0, D=0
+if caso == 3:
+    gamma = [0.]
+    delta = [0.]
+    p_1 = gamma # FIXED FOR EACH PLOT OF THE #POINTS
+    p_2 = delta  # FIXED FOR EACH PLOT OF THE #POINTS
+    p_3 = alpha1  # IN EACH PLOT THERE IS A LINE FOR EACH p_3
+    p_4 = beta  # PARAMETERS ON THE X-AXIS
+    fixed_1 = '$\\gamma$' #p_1
+    fixed_2 = '$\\delta$' #p_2
+    line = '$\\alpha$' #p_3
+    x_ax = '$\\beta$'  #p_4
+    aa = 'gamma' #p_1
+    bb = 'delta' #p_2
+    gg = 'alpha' #p_3
+    dd = 'beta' #p_4
+
+#### CASO G=0, D=0
+
+
 print('Vuoi vedere i grafici per il sampling EDOTTIA?')
 o = input()
 if o == 'y':
-    alpha1 = [.1, .4, 1.]
-    beta = [0.,.4, 1.]
-    gamma = [0., 2., 4., 6., 8., 10.]
-    delta = [0., 2., 4., 6., 8., 10.]
 
-    for a in alpha1:
-        for b in beta:
+    for a in p_1:
+        for b in p_2:
             i = 0
             fig = plt.figure(figsize=(12,18))
             ax1 = fig.add_subplot()
-            ax1.set_xlabel('$\\delta$ value',fontsize=40)
+            ax1.set_xlabel('{} value'.format(x_ax),fontsize=40)
             ax1.set_ylabel("Fraction of sampled points",fontsize=40)
             ax1.set_ylim([0,1.1])
-            plt.title('$\\alpha$={}, $\\beta$={}'.format(a, b),fontsize=40)
+            plt.title('{}={}, {}={}'.format(fixed_1,a, fixed_2, b),fontsize=40)
             number_points_gamma = []
-            for g in gamma:
+            for g in p_3:
                 number_points_delta = []
-                for d in delta:
-                    with open("{}\EDOTTIA\\a{}_b{}_g{}_d{}.txt".format(respath,a,b,g,d)) as f:
+                for d in p_4:
+                    ### ORIGINALE
+                    if caso == 1:
+                        a_ = a
+                        b_ = b
+                        g_ = g
+                        d_ = d
+                    #### CASO B=0, G=0
+                    if caso == 2:
+                        a_= g
+                        b_= a
+                        g_= b
+                        d_= d
+                    #### CASO B=0, G=0
+                    if caso == 3:
+                        a_ = g
+                        b_ = d
+                        g_ = a
+                        d_ = b
+                    with open("{}\EDOTTIA\\a{}_b{}_g{}_d{}.txt".format(respath,a_,b_,g_,d_)) as f:
                         index_possible_points = list(set([int(float(x)) for x in f.read().split()]))
                         number_points_delta.append(round(len(index_possible_points)/lag,4))
                 number_points_gamma.append(number_points_delta)
 
-                plt.plot(delta, number_points_gamma[i],linewidth=5, label='$\gamma$={}'.format(g))
+                plt.plot(p_4, number_points_gamma[i],linewidth=5, label='{}={}'.format(line,g))
                 plt.yticks(fontsize=40)
                 plt.xticks(fontsize=40)
                 plt.legend(fontsize=40)
@@ -107,166 +180,260 @@ if o == 'y':
                 i += 1
             plt.show()
 
-######################## PARAMETRI PER I PROSSIMI DUE STEP
-frac_test = 200
-PLOT = 1
-alpha1 = [.1, .4, 1.]
-beta = [0., .2, .4, .6, .8, 1.]
-gamma = [0., 2., 4., 6., 8., 10.]
-delta = [0., 2., 4., 6., 8., 10.]
-#total_sampling = []
-#total_random = []
-###################    GRAPHS OF THE MEAN(TOT VS R)-MEAN(TOT VS S) AS A FUNCTION OF DELTA, AND OF THE LOWEST ONES LABELD WITH THE MEAN(TOT VS S)
-print('Vuoi vedere tutti i grafici del mondo?')
+####################    3D PLOTS OF THE BEST BETA (COLORED=DIFF) AS A FUNCTION OF DELTA AND GAMMA, or in general
+print('Vuoi trovare il beta migliore?')
 o = input()
 if o == 'y':
     file = "{}\EDOTTIA\\difference_{}_{}_over_{}points.csv".format(respath,fragment,cluster,int(lag/frac_test))
     results = pd.DataFrame()
-    results['alpha'] = pd.read_csv(file,usecols=['alpha'],squeeze=True)
-    results['beta'] = pd.read_csv(file,usecols=['beta'],squeeze=True)
-    results['gamma'] = pd.read_csv(file,usecols=['gamma'],squeeze=True)
-    results['delta'] = pd.read_csv(file,usecols=['delta'],squeeze=True)
+    results['alpha'] = pd.read_csv(file,usecols=[aa],squeeze=True)
+    results['beta'] = pd.read_csv(file,usecols=[bb],squeeze=True)
+    results['gamma'] = pd.read_csv(file,usecols=[gg],squeeze=True)
+    results['delta'] = pd.read_csv(file,usecols=[dd],squeeze=True)
     results['mean(tot vs s)'] = pd.read_csv(file,usecols=['m(tot vs s)'],squeeze=True)
     results['mean(tot vs r)'] = pd.read_csv(file,usecols=['m(tot vs r)'],squeeze=True)
     results['selected points'] = pd.read_csv(file,usecols=['selected points'],squeeze=True)
     results['difference'] = results['mean(tot vs r)']-results['mean(tot vs s)']
     results['loss']=results['mean(tot vs s)']*results['difference']/results['selected points']
 
+    if caso ==1:
+        a_fix = 1. #PARAMETRO CHE FISSO PER VEDERE I PLOT 3D
+    else:
+        a_fix = p_1[0]
+    a_results = pd.DataFrame()
+    a_results = results[results.alpha.isin([a_fix])]
 
-    # fissato alpha, provo per un paio di beta a fare un grafico 3D della Loss=diff/selected points rispetto a gamma e delta
+    diff = []
+    b_best = []
+    for g in p_3:
+        a_g_results = pd.DataFrame()
+        a_g_results = a_results[a_results.gamma.isin([g])]
+        d_diff = []
+        b_d = []
+        for d in p_4:
+            a_g_d_results = pd.DataFrame()
+            a_g_d_results = a_g_results[a_g_results.delta.isin([d])]
+            d_diff.append(a_g_d_results['difference'].max())
+            b_d.append(a_g_d_results[a_g_d_results['difference'] == a_g_d_results['difference'].max()].reset_index().at[0,'beta'])
 
-    a_fix = 1.
+        diff.append(d_diff)
+        b_best.append(b_d)
+
+
+    X_rough = p_4
+    Y_rough = p_3
+    X_rough, Y_rough = np.meshgrid(X_rough,Y_rough)
+    Z_rough = np.array(diff).reshape(6,6)
+
+    Z_color_rough = np.array(b_best).reshape(6,6)
+
+    X, Y = np.mgrid[0:10:.5, 0:10:.5]
+    tck = interpolate.bisplrep(X_rough, Y_rough, Z_rough, s=0)
+    Z = interpolate.bisplev(X[:, 0], Y[0, :], tck)
+
+    tck_color = interpolate.bisplrep(X_rough, Y_rough, Z_color_rough, s=0)
+    Z_color = interpolate.bisplev(X[:, 0], Y[0, :], tck_color)
+    norm = matplotlib.colors.Normalize(vmin=Z_color.min().min(), vmax=Z_color.max().max())
+
+    fig = plt.figure(figsize=(12, 12))
+    ax = fig.gca(projection='3d')
+
+    cset = ax.contour(X, Y, Z, zdir='z', offset=-0.1, cmap=plt.cm.summer)
+    cset = ax.contour(X, Y, Z, zdir='x', offset=-2, cmap=plt.cm.summer)
+    cset = ax.contour(X, Y, Z, zdir='y', offset=12, cmap=plt.cm.summer)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+    ax.zaxis.set_tick_params(labelsize=30)
+    ax.xaxis.set_tick_params(labelsize=30)
+    ax.yaxis.set_tick_params(labelsize=30)
+
+    m = cm.ScalarMappable(cmap=plt.cm.summer, norm=norm)
+    m.set_array([])
+    cbar = plt.colorbar(m, orientation="vertical")
+    cbar.set_label(label=fixed_2, size=50, weight='bold')
+    cbar.ax.tick_params(labelsize=30)
+
+
+    ax.set_xlabel(x_ax, fontsize=50, linespacing=3.1)
+    ax.set_ylabel(line, fontsize=50, linespacing=3.1)
+    #ax.set_zlabel('d', fontsize=50, linespacing=3.1)
+    ax.set_title('Highest $d$ for {}={}'.format(fixed_1, a_fix, line, x_ax), fontsize=50, linespacing=3.1)
+
+    max_z = np.max(Z)
+    index_max_z = np.where(Z == np.amax(Z))
+    index_d = index_max_z[0]
+    index_g = index_max_z[1]
+
+    beta_max = '%.1f' % (Z_color[index_d,index_g][0])
+    gamma_max = Y[index_d,index_g][0]
+    delta_max = X[index_d,index_g][0]
+    ax.scatter(X[index_d,index_g], Y[index_d,index_g], max_z,'ro', s=330, color='red',zorder=1, label='$\\beta$={}, $\\gamma$={}, $\\delta$={}'.format(beta_max,gamma_max,delta_max))
+    plt.legend(fontsize=40)
+
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors=plt.cm.summer(norm(Z_color)), antialiased=True, shade=False)
+    plt.show()
+
+    print('delta', delta_max)
+    print('gamma', gamma_max)
+    print('beta', beta_max)
+    print('diff', max_z)
+
+
+###################    GRAPHS OF THE MEAN(TOT VS R)-MEAN(TOT VS S) AS A FUNCTION OF DELTA, AND OF THE LOWEST ONES LABELD WITH THE MEAN(TOT VS S)
+print('Vuoi vedere tutti i grafici del mondo?')
+o = input()
+if o == 'y':
+    file = "{}\EDOTTIA\\difference_{}_{}_over_{}points.csv".format(respath,fragment,cluster,int(lag/frac_test))
+    results = pd.DataFrame()
+    results['alpha'] = pd.read_csv(file,usecols=[aa],squeeze=True)
+    results['beta'] = pd.read_csv(file,usecols=[bb],squeeze=True)
+    results['gamma'] = pd.read_csv(file,usecols=[gg],squeeze=True)
+    results['delta'] = pd.read_csv(file,usecols=[dd],squeeze=True)
+    results['mean(tot vs s)'] = pd.read_csv(file,usecols=['m(tot vs s)'],squeeze=True)
+    results['mean(tot vs r)'] = pd.read_csv(file,usecols=['m(tot vs r)'],squeeze=True)
+    results['selected points'] = pd.read_csv(file,usecols=['selected points'],squeeze=True)
+    results['difference'] = results['mean(tot vs r)']-results['mean(tot vs s)']
+    results['loss'] = results['mean(tot vs s)']*results['difference']/results['selected points']
+
+    # fissato p_1, provo per un paio di p_2 (o uno se e' fissato) a fare un grafico 3D della Loss=diff/selected points rispetto a p_3 e p_4
+    if caso == 1:
+        a_fix = 1.
+    else:
+        a_fix = p_1[0]
     a_results = pd.DataFrame()
     a_results = results[results.alpha.isin([a_fix])]
     max_d = []
-    for b in beta:
+    for b in p_2:
         a_b_results = pd.DataFrame()
         a_b_results = a_results[a_results.beta.isin([b])]
         g_diff = []
-        for g in gamma:
+        for g in p_3:
             a_b_g_results = pd.DataFrame()
             a_b_g_results = a_b_results[a_b_results.gamma.isin([g])]
             d_diff = []
-            for d in delta:
+            for d in p_4:
                 a_b_g_d_results = pd.DataFrame
                 a_b_g_d_results = a_b_g_results[a_b_g_results.delta.isin([d])]
                 d_diff.append(a_b_g_d_results['difference'])
             g_diff.append(d_diff)
-
-        X_rough = delta
-        Y_rough = gamma
+        X_rough = p_4
+        Y_rough = p_3
         X_rough, Y_rough = np.meshgrid(X_rough,Y_rough)
         Z_rough = np.array(g_diff).reshape(6,6)
 
-        X, Y = np.mgrid[0:10:.5, 0:10:.5]
+        minx = min(p_4)
+        maxx = max(p_4)
+        miny = min(p_3)
+        maxy = max(p_3)
+        X, Y = np.mgrid[minx:maxx:(maxx-minx)/20, miny:maxy:(maxy-miny)/20]
         tck = interpolate.bisplrep(X_rough, Y_rough, Z_rough, s=0)
         Z = interpolate.bisplev(X[:, 0], Y[0, :], tck)
-        fig = plt.figure(figsize=(12, 12))
+        fig = plt.figure(figsize=(15, 15))
         ax = fig.gca(projection='3d')
         ax.plot_surface(X, Y, Z, cmap='summer', rstride=1, cstride=1, alpha=None, antialiased=True)
-        # Creating color map
-        #my_cmap = plt.get_cmap('hot')
-        #fig = plt.figure(figsize=(14, 9))
-        #ax = plt.axes(projection='3d')
-        #surf = ax.plot_surface(X, Y, Z, cmap=my_cmap, edgecolor='none')
         cset = ax.contour(X, Y, Z, zdir='z', offset=-0.1, cmap='summer')
-        cset = ax.contour(X, Y, Z, zdir='x', offset=-2, cmap='summer')
-        cset = ax.contour(X, Y, Z, zdir='y', offset=12, cmap='summer')
+        if caso == 3:
+            cset = ax.contour(X, Y, Z, zdir='x', offset=-.2, cmap='summer')
+        else:
+            cset = ax.contour(X, Y, Z, zdir='x', offset=-2, cmap='summer')
+        if caso != 1:
+            cset = ax.contour(X, Y, Z, zdir='y', offset=1.1, cmap='summer')
+        else:
+            cset = ax.contour(X, Y, Z, zdir='y', offset=10.1, cmap='summer')
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        ax.zaxis.set_tick_params(labelsize=20)
-        ax.xaxis.set_tick_params(labelsize=20)
-        ax.yaxis.set_tick_params(labelsize=20)
+        ax.zaxis.set_tick_params(labelsize=30)
+        ax.xaxis.set_tick_params(labelsize=30)
+        ax.yaxis.set_tick_params(labelsize=30)
 
-        ax.set_xlabel('$\\delta$', fontsize=30, linespacing=3.1)
-        ax.set_ylabel('$\\gamma$', fontsize=30, linespacing=3.1)
-        ax.set_title('$d$ for $\\alpha$={} and $\\beta$={}'.format(a_fix,b), fontsize=30, linespacing=3.1)
+        ax.set_xlabel(x_ax, fontsize=50, linespacing=3.1)
+        ax.set_ylabel(line, fontsize=50, linespacing=3.1)
+        ax.set_title('$d$ for {}={} and {}={}'.format(fixed_1, a_fix, fixed_2, b), fontsize=50, linespacing=3.1)
 
-        # calc index of max Z value
-        xmax, ymax = np.unravel_index(np.argmax(Z_rough), Z_rough.shape)
-        # min max points in 3D space (x,y,z)
-        max_d.append([X_rough[xmax, ymax], Y_rough[xmax, ymax], Z_rough.max(),b])
+        max_z = np.max(Z)
+        index_max_z = np.where(Z == np.amax(Z))
+        index_d = index_max_z[0]
+        index_g = index_max_z[1]
+
+        gamma_max = Y[index_d, index_g][0]
+        delta_max = X[index_d, index_g][0]
+        if caso != 1:
+            ax.scatter(X[index_d, index_g], Y[index_d, index_g], max_z, 'ro', s=330, color='red', zorder=1)
+        print('Best parameters')
+        print(aa, a_fix)
+        print(dd, delta_max)
+        print(gg, gamma_max)
+        print(bb, p_2)
+        print('diff', max_z)
+
     plt.show()
 
-    print(np.array(max_d))
-
-    #d_max = list(np.array(max_d)[:,0])
-    #g_max = list(np.array(max_d)[:,1])
-    #b_max = list(np.array(max_d)[:,3])
-    #d_max, g_max = np.meshgrid(d_max, g_max)
-    #dist_max = np.array(max_d)[:,2].reshape(6, 6)
-
-
+    #print('Best values for {}, line,diff,{}'.format(x_ax,line,fixed_2))
+    #print(np.array(max_d))
 
         ############## MIGLIORI 20 SAMPLING x=Z(tot-r)-Z(tot-s) y=#points, label=parameters ##############
             # GUARDA I PARAMETRI MIGLIORI E FACCI IL BOX PLOT
-    best = results.nlargest(20, columns=['difference'])
-    best.reset_index(drop=True, inplace=True)
-    x = best['difference']
-    y = best['selected points']
-    color = best['gamma']
-    scale = best['delta']*10
-    annotations = []
-    for i in range(best.shape[0]):
-        annotations.append(r'Dist= %.2f, with $\alpha$=%.1f,$\beta$=%.1f,$\gamma$=%.1f,$\delta$=%.1f' % (best.loc[i,'mean(tot vs s)'], best.loc[i,'alpha'], best.loc[i,'beta'], best.loc[i,'gamma'], best.loc[i,'delta']))
-
-    plt.figure(figsize=(8, 6))
-    plt.xlabel("Difference between the random and sampling mean distance from the total surface")
-    plt.ylabel("Number of sampled points")
-    plt.title("Best performing samplings", fontsize=15)
-    cm = plt.cm.get_cmap('RdYlBu')
-    #for i, label in enumerate(annotations):
-        #plt.scatter(x[i], y[i], s=100, label=annotations[i]))
-
-    sc = plt.scatter(x,y,c=color, s=scale,cmap=cm)
-
-
-    #sc = plt.scatter(x, y, c=color, label=annotations, s=scale, cmap=cm)
-    plt.colorbar(sc, format='%.1f',
-                 label="$\\gamma$")
-    sc.set_sizes(scale)
-
-    plt.legend()
-    plt.show()
+                #best = results.nlargest(20, columns=['difference'])
+                #best.reset_index(drop=True, inplace=True)
+                #x = best['difference']
+                #y = best['selected points']
+                #color = best['gamma']
+                #scale = best['delta']*10
+                #annotations = []
+                #for i in range(best.shape[0]):
+                #    annotations.append(r'Dist= %.2f, with $\alpha$=%.1f,$\beta$=%.1f,$\gamma$=%.1f,$\delta$=%.1f' % (best.loc[i,'mean(tot vs s)'], best.loc[i,'alpha'], best.loc[i,'beta'], best.loc[i,'gamma'], best.loc[i,'delta']))
+                #plt.figure(figsize=(8, 6))
+                #plt.xlabel("Difference between the random and sampling mean distance from the total surface")
+                #plt.ylabel("Number of sampled points")
+                #plt.title("Best performing samplings", fontsize=15)
+                #cm = plt.cm.get_cmap('RdYlBu')
+                #sc = plt.scatter(x,y,c=color, s=scale,cmap=cm)
+                #plt.colorbar(sc, format='%.1f',
+                #             label="$\\gamma$")
+                #sc.set_sizes(scale)
+                #plt.legend()
+                #plt.show()
 
         ########## Z(tot-r)-Z(tot-s) AS A FUNCTION OF D, FOR FIXED A, B AND ALL THE G IN A GRAPH
-    for a in alpha1:
-        for b in beta:
-            i = 0
-            fig = plt.figure()
-            ax1 = fig.add_subplot(111)
-            ax1.set_xlabel('$\\delta$ value')
-            ax1.set_ylabel("Difference between the random and sampling mean distance from the total surface")
-            plt.title('$\\alpha$={}, $\\beta$={}'.format(a, b))
-            number_points_gamma = []
-            for g in gamma:
-                diff = []
-                for d in delta:
-                    diff_p = results.loc[(results['alpha'] == a)&(results['beta'] == b)&(results['gamma']==g),'difference']
-                    print('diff p', np.array(diff_p).shape)
-                    print('d', np.array(delta).shape)
-                    print('alpha={},beta={},gamma={}'.format(a,b,g))
-                    diff.append(diff_p)
-                plt.plot(delta, diff[i], label='$\gamma$={}'.format(g))
-                i += 1
-            leg = ax1.legend()
-            plt.show()
+            #for a in alpha1:
+            #    for b in beta:
+            #        i = 0
+            #        fig = plt.figure()
+            #        ax1 = fig.add_subplot(111)
+            #        ax1.set_xlabel('$\\delta$ value')
+            #        ax1.set_ylabel("Difference between the random and sampling mean distance from the total surface")
+            #        plt.title('$\\alpha$={}, $\\beta$={}'.format(a, b))
+            #        number_points_gamma = []
+            #        for g in gamma:
+            #            diff = []
+            #            for d in delta:
+            #                diff_p = results.loc[(results['alpha'] == a)&(results['beta'] == b)&(results['gamma']==g),'difference']
+            #                print('diff p', np.array(diff_p).shape)
+            #                print('d', np.array(delta).shape)
+            #                print('alpha={},beta={},gamma={}'.format(a,b,g))
+            #                diff.append(diff_p)
+            #            plt.plot(delta, diff[i], label='$\gamma$={}'.format(g))
+            #            i += 1
+            #        leg = ax1.legend()
+            #        plt.show()
 
         ################## MIGLIOR SAMPLING PER CIASCUN RANGE DI PUNTI #######
-    min_points = results['selected points'].min()
-    max_points = results['selected points'].max()
-    div = 10
-    number_limits = np.arange(min_points, max_points + (max_points - min_points) / div, (max_points - min_points) / div)
-    for i in np.arange(div):
-        diff = results[
-            (results['selected points'] >= number_limits[i]) & (results['selected points'] < number_limits[i + 1])]
-        diff_max = diff.nlargest(1, columns=['difference'])
-        print('For the range {} - {}'.format(number_limits[i], number_limits[i + 1]))
-        pd.set_option('display.max_rows', None)
-        pd.set_option('display.max_columns', None)
-        pd.set_option('display.width', None)
-        pd.set_option('display.max_colwidth', -1)
-        print(diff_max)
+    RANGE = 0
+    if RANGE == 1:
+        min_points = results['selected points'].min()
+        max_points = results['selected points'].max()
+        div = 10
+        number_limits = np.arange(min_points, max_points + (max_points - min_points) / div, (max_points - min_points) / div)
+        for i in np.arange(div):
+            diff = results[
+                (results['selected points'] >= number_limits[i]) & (results['selected points'] < number_limits[i + 1])]
+            diff_max = diff.nlargest(1, columns=['difference'])
+            print('For the range {} - {}'.format(number_limits[i], number_limits[i + 1]))
+            pd.set_option('display.max_rows', None)
+            pd.set_option('display.max_columns', None)
+            pd.set_option('display.width', None)
+            pd.set_option('display.max_colwidth', -1)
+            print(diff_max)
 
 
 
@@ -280,11 +447,10 @@ if o == 'y':
     #    mode='a')
 
     zernike = np.loadtxt("{}\zernike\zernike_positive\zernike_total.dat".format(respath), delimiter=" ", skiprows=1)
-    alpha1 = [1.]
-    for a in [1.0]:
-        for b in [0.0]:
-            for g in [4.]:
-                for d in [4.]:
+    for a in [.2, .6, .8]:
+        for b in [1.]:
+            for g in [.0]:
+                for d in [2., 4., 6., 8., 10.]:
                     with open("{}\EDOTTIA\\a{}_b{}_g{}_d{}.txt".format(respath, a,b,g,d)) as f:
                         sampling_index = list(set([int(float(x)) for x in f.read().split()]))
                         number_points = len(sampling_index)
@@ -371,7 +537,8 @@ if o == 'y':
                     results.loc[0,'selected points'] = number_points
                     results.loc[0,'m(tot vs s)'] = np.mean(np.linalg.norm(np.array(zernike_total) - np.array(zernike_sampling), axis=0))
                     results.loc[0,'m(tot vs r)'] = np.mean(np.linalg.norm(np.array(zernike_total) - np.array(zernike_random), axis=0))
-                    #results.to_csv("{}\EDOTTIA\\difference_{}_{}_over_{}points.csv".format(respath,fragment,cluster,int(lag/frac_test)),mode='a', header=False)
+                    results.to_csv("{}\EDOTTIA\\difference_{}_{}_over_{}points.csv".format(respath,fragment,cluster,int(lag/frac_test)),mode='a', header=False)
+
 
 ################### !!BOX PLOT!!!  COMPARISON BETWEEN ZERNIKE TOTAL AND THE NEWLY DEFINED SAMPLING/RANDOM ZERNIKE #########
 print('Vuoi vedere il BOX PLOT per la differenza Zernike totale vs sampling/random?')
@@ -379,10 +546,10 @@ o = input()
 if o == 'y':
     n_bins = 10
     PLOT = 0
-    a = 1.
-    b = .0
-    g = 6.0
-    d = 0.
+    a = .95
+    b = 1.
+    g = .0
+    d = 4.
 
     with open("{}\EDOTTIA\\a{}_b{}_g{}_d{}.txt".format(respath, a, b, g, d)) as f:
         sampling_index = list(set([int(float(x)) for x in f.read().split()]))
@@ -512,27 +679,27 @@ if o == 'y':
 
     ticks = mean_bin_values
     def set_box_color(bp, color):
-        plt.setp(bp['boxes'], color=color)
-        plt.setp(bp['whiskers'], color=color)
-        plt.setp(bp['caps'], color=color)
-        plt.setp(bp['medians'], color=color)
+        plt.setp(bp['boxes'], color=color, linewidth=5)
+        plt.setp(bp['whiskers'], color=color, linewidth=5)
+        plt.setp(bp['caps'], color=color, linewidth=5)
+        plt.setp(bp['medians'], color=color, linewidth=5)
 
-    bps = plt.boxplot(bin_sampling, positions=np.array(range(len(bin_sampling))) * 2.0 - 0.4, sym='', widths=0.6)
-    bpr = plt.boxplot(bin_random, positions=np.array(range(len(bin_random))) * 2.0 + 0.4, sym='', widths=0.6)
+    bps = plt.boxplot(bin_sampling, positions=np.array(range(len(bin_sampling))) * 2.0 - 0.4, sym='', widths=.6)
+    bpr = plt.boxplot(bin_random, positions=np.array(range(len(bin_random))) * 2.0 + 0.4, sym='', widths=.6)
     set_box_color(bps, '#D7191C')  # colors are from http://colorbrewer2.org/
     set_box_color(bpr, '#2C7BB6')
     # draw temporary red and blue lines and use them to create a legend
-    plt.plot([], c='#D7191C', label='From total ({} points) and sampled surface ({} points)'.format(lag,number_points))
-    plt.plot([], c='#2C7BB6', label='From total ({} points) and random surface ({} points)'.format(lag,number_points))
+    plt.plot([], c='#D7191C', label='Sampling'.format(lag,number_points))
+    plt.plot([], c='#2C7BB6', label='Random'.format(lag,number_points))
     plt.title(
-        "Distance between Zernike vectors for $\\alpha$={}, $\\beta$={}, $\\gamma$={}, $\\delta$={} for different ranges of roughness ({} for each interval)".format(a, b, g, d, len(bin_sampling[1]), lag),fontsize=22)
-    plt.xlabel("Mean cosine of the considered patches",fontsize=22)
-    plt.ylabel("Norm of the distance between Zernike vectors",fontsize=22)
+        "$\\alpha$={}, $\\beta$={}, $\\gamma$={}, $\\delta$={}".format(a, b, g, d, len(bin_sampling[1]), lag),fontsize=40)
+    plt.xlabel("Mean roughness intervals",fontsize=40)
+    plt.ylabel("$Z^R_{(t-S)}$ vs $Z^R_{(t-R)}$",fontsize=40)
 
-    plt.legend(fontsize=16)
+    plt.legend(fontsize=40)
 
-    plt.xticks(range(0, len(ticks) * 2, 2), ticks,fontsize=22)
-    plt.yticks(fontsize=12)
+    plt.xticks(range(0, len(ticks) * 2, 2), ticks,fontsize=40)
+    plt.yticks(range(0,11), fontsize=40)
     plt.tight_layout()
     plt.show()
 
@@ -541,23 +708,6 @@ print("Vuoi calcolare la MEDIA DEL COSENO di ciascuna possibile patch? y o n?")
 ooo = input()
 if ooo == "y":
     cosine = my_functions.RapidCos(ltmp, surf, surf_obj_scan, respath, Rs_select, step)
-
-
-print("Vuoi vedere il numero di punti in funzione di alpha? y o n?")
-o = input()
-if o == "y":
-    alpha_points_plot = []
-    for a in alpha:
-        with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, a)) as f:
-            index_possible_points = list(set([int(float(x)) for x in f.read().split()]))
-            alpha_points_plot.append(len(index_possible_points))
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax1.set_xlabel('$\\alpha$ value')
-    ax1.set_ylabel("Number of sampled points over {} points".format(lag))
-    plt.plot(alpha, alpha_points_plot)
-    plt.show()
 
 
 
@@ -641,6 +791,10 @@ if o == "y":
     plt.xticks(fontsize=40)
     plt.show()
 
+
+                        ############# INUTILI ORA CHE HO IL NUOVO SAMPLING A 4 PARAMETERI #########################
+
+
     ############### SCREENING PARTENDO DA COSINE_FAST.txt    #################
 print("Vuoi fare lo SCREENING partendo da cosine.txt per diversi valori di alpha? y o n?")
 o = input()
@@ -651,3 +805,20 @@ if o == "y":
     for i in alpha:
        index_possible_area = my_functions.ContinuousDistributionFast(ltmp,mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
        #index_possible_area = my_functions.ContinuousDistribution(mean_cos, surf, surf_obj_scan, Rs_select, i, step, respath, screening)
+
+
+print("Vuoi vedere il numero di punti in funzione di alpha? y o n?")
+o = input()
+if o == "y":
+    alpha_points_plot = []
+    for a in alpha:
+        with open("{}\{}\index_possible_area_R_s_{}_alpha_{}_step_1.txt".format(respath, screening, Rs_select, a)) as f:
+            index_possible_points = list(set([int(float(x)) for x in f.read().split()]))
+            alpha_points_plot.append(len(index_possible_points))
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xlabel('$\\alpha$ value')
+    ax1.set_ylabel("Number of sampled points over {} points".format(lag))
+    plt.plot(alpha, alpha_points_plot)
+    plt.show()

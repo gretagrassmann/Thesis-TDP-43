@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 import os, sys
 import numpy as np
-import scipy as sp
-import matplotlib.pyplot as mpl
 import pandas as pd
-from mayavi import mlab
 import SurfaceFunc as SF
 import matplotlib.pyplot as plt
-#plt.rcParams.update({'font.size': 32})
-
-import openpyxl
 
     ########    PARAMETERS  #######
 fragment1 = 220
@@ -138,10 +132,15 @@ if o =='y':
 
                     comp_region.BP.rolling(5).mean()
                     ax = comp_region.plot.area(color='powderblue', legend=False)
-                    ax.set_yticklabels([])
-                    ax.set_xticklabels([])
-                    ax.xaxis.label.set_visible(False)
-                    ax.yaxis.label.set_visible(False)
+                    ax.set_yticklabels([0.3, 0.6, 0.9])
+                    ax.set_yticks((0.3, 0.6, 0.9))
+                    ax.yaxis.set_tick_params(labelsize=30)
+                    ax.xaxis.set_tick_params(labelsize=30)
+
+                    #ax.xaxis.label.set_visible(False)
+                    #ax.yaxis.label.set_visible(False)
+                    ax.set_xlabel("Residues", fontsize=60)
+                    ax.set_ylabel("BP", fontsize=60)
                     #plt.tight_layout()
                     ax.text(1.5, 0.2, 'BP={}'.format((round(beta_mean, 3))), color='black',
                             bbox=dict(facecolor='white', edgecolor='black'), fontsize=85)

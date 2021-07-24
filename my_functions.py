@@ -15,19 +15,10 @@ def find_nearest_vector2D(array,value):
     dist_2 = np.sum((array - value)**2, axis=1)
     return np.argmin(dist_2)
 
-
-#def find_nearest_vector(array,value):
-#    idx = np.array([np.linalg.norm(x+y+z) for (x,y,z) in array-value]).argmin()
-#    return idx
-
 def find_nearest_vector(array,value):
     array = np.asarray(array)
     dist_3 = np.sum((array - value)**2, axis=1)
     return np.argmin(dist_3)
-
-
-
-
 
 ################ POINTS SCREENING ########################
 def RapidCos(ltmp, surf, surf_obj_scan, respath, Rs_select, step):

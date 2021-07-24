@@ -641,9 +641,17 @@ def Plot3DPoints(x,y,z, color,size=0.3):
     if(MLAB_LAB):
         mlab.figure(1, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(800, 600))
         mlab.clf()
-        pp = mlab.points3d(x,y,z, scale_factor=size)
+        #pp = mlab.points3d(x,y,z, scale_factor=size) !!!!
+        pp = mlab.points3d(x,y,z,color, colormap='RdBu', scale_factor=size)
+
         pp.glyph.scale_mode = 'scale_by_vector'
-        pp.mlab_source.dataset.point_data.scalars = color
+        #pp.mlab_source.dataset.point_data.scalars = color
+
+        B=0
+        if B==1:
+            #points = mlab.points3d(x, y, z, s, colormap="blue-red", scale_factor=.25)
+            mlab.colorbar(object=pp, title="R", orientation='vertical')
+            mlab.colorbar.unconstrained_font_size = True
 
         mlab.view(90, 70, 6.2, (-1.3, -2.9, 0.25))
         mlab.show()
@@ -703,7 +711,7 @@ def FixBridgeRealBS(patch_ab, patch_ag, Dpp):
     D = np.zeros((l_ab, l_ag))
     for i in range(l_ab):
         for j in range(l_ag):
-            D[i,j] = np.sum((np.array(cm_ab[i]) -  np.array(cm_ag[j]))**2)
+            D[i,j] = np.sum((np.array(cm_ab[i]) - np.array(cm_ag[j]))**2)
         
     # associating groups according to the minimal distance...
     index_ab = []
@@ -788,27 +796,35 @@ class Surface:
     def BuildPatch(self, point_pos, Dmin):
 
         d2 = (self.surface[:,0] - self.surface[point_pos,0])**2 + (self.surface[:,1] - self.surface[point_pos,1])**2 + (self.surface[:,2] - self.surface[point_pos,2])**2
-
         #mask = self.distance_matrix[point_pos, :] <= self.r0
         mask = d2 <= self.r0**2
         patch_points = self.surface[mask,:]
-
-
-
         ## processing patch to remove islands..
         index_ = IsolateSurfaces(patch_points, Dmin)
-
         val, counts = np.unique(index_,return_counts=True)
         #print(val, counts)
         pos_ = np.where(counts == np.max(counts))[0][0]
         lab_ = val[pos_]
-
         mmm = np.ones(len(mask))*-1000.
         mmm[mask] = index_
         new_mask = mmm == lab_
-
         patch_points__ = self.surface[new_mask,:]
+        return(patch_points__, new_mask)
 
+    def BuildMixedPatch(self, point_pos, Dmin):
+        d2 = (self.surface[:,0] - point_pos[0])**2 + (self.surface[:,1] - point_pos[1])**2 + (self.surface[:,2] - point_pos[2])**2
+        #mask = self.distance_matrix[point_pos, :] <= self.r0
+        mask = d2 <= self.r0**2
+        patch_points = self.surface[mask,:]
+        ## processing patch to remove islands..
+        index_ = IsolateSurfaces(patch_points, Dmin)
+        val, counts = np.unique(index_,return_counts=True)
+        pos_ = np.where(counts == np.max(counts))[0][0]
+        lab_ = val[pos_]
+        mmm = np.ones(len(mask))*-1000.
+        mmm[mask] = index_
+        new_mask = mmm == lab_
+        patch_points__ = self.surface[new_mask,:]
         return(patch_points__, new_mask)
 
     def FindPatchOrientation(self,rot_protein, patch_mask):
@@ -965,36 +981,34 @@ class Surface:
 
         # copying patch matrix..ndO
         rot = rotated_pacth.copy()
-
         # computing distances of points from the origin (geometrical center) in the xy plane..
         dist_in_plane = np.sqrt(rot[:,0]**2 + rot[:,1]**2)
-
         # finding point with maximum distance..
         max_dist = np.max(dist_in_plane)
-
         pos_max = np.where(dist_in_plane == max_dist)[0]
         if(len(pos_max) >1):
             pos_max = pos_max[0]
-
+            #rot_distant_in_plane = rot[[i for i in pos_max],2]
+            #min_z = np.min(rot_distant_in_plane)
+            #pos_max = np.where(rot[:,2] == min_z)[0]
 
         # translating patch to put the centre of the cone in the origin
         d = -max_dist + rot[pos_max, 2]
-        #print("d",d)
-        #print(np.shape(rot[:,2]))
         rot[:,2] -= d
         # looking for points outside the cone: their plane distance must be bigger than their z component..
         mask = dist_in_plane > np.abs(rot[:,2])
 
-
         # shifting the cone origin untill all points are inside the cone..
         while(np.sum(mask) != 0):
-
             ## finding the maximum distance only among points outside the cone
             new_d = np.max(dist_in_plane[mask])
             pos_max_new = np.where(dist_in_plane == new_d)[0]
 
             if(len(pos_max_new) >1):
-                pos_max_new = pos_max_new[0]
+                #pos_max_new = pos_max_new[0]
+                rot_distant_in_plane = rot[[i for i in pos_max_new], 2]
+                min_z = np.min(rot_distant_in_plane)
+                pos_max_new = np.where(rot[:, 2] == min_z)[0]
 
             # shifting the patch..
             d = -new_d + rot[pos_max_new, 2]
