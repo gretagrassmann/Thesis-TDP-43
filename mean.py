@@ -3,21 +3,32 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+def set_size(w,h, ax=None):
+    """ w, h: width, height in inches """
+    if not ax: ax=plt.gca()
+    l = ax.figure.subplotpars.left
+    r = ax.figure.subplotpars.right
+    t = ax.figure.subplotpars.top
+    b = ax.figure.subplotpars.bottom
+    figw = float(w)/(r-l)
+    figh = float(h)/(t-b)
+    ax.figure.set_size_inches(figw, figh)
+
 
 first_fram = [208]
-second_fram = [220]
+second_fram = [208]
 prima_conf = [4]
 num = 4-1  # = PRIMA CONF -1
-second_conf = [2]
+second_conf = [4]
 
 o='y'
 if o == 'y':
     #HO DISGUSTOSAMENTE COPIATO SU FILE I NUMERI UNO ALLA VOLTA, QUESTA COSA VA AUTOMATIZZATA
-    b3b5 = np.loadtxt("..\..\..\senzaUNFOLDING\\b3b5sum.txt")
-    b = np.loadtxt("..\..\..\senzaUNFOLDING\\bsum.txt")
-    b3b5 = b3b5/2
-    b = b/2
-    with open("..\..\..\senzaUNFOLDING\\pairsum.txt") as fh:
+    b3b5 = np.loadtxt("..\..\..\senzaUNFOLDING\\b3b52.txt")
+    b = np.loadtxt("..\..\..\senzaUNFOLDING\\b2.txt")
+    b3b5 = b3b5
+    b = b
+    with open("..\..\..\senzaUNFOLDING\\pairs2.txt") as fh:
         pairs = fh.read().split('\n')
 
 
@@ -31,14 +42,16 @@ if o == 'y':
     b = results['b'].to_numpy()
     pairs = results['pairs']
 
-    fig = plt.figure()
+    #fig = plt.figure(figsize=(6,4))
+    fig, ax = plt.subplots()
 
     ind = np.arange(len(pairs))
-    width = 0.3
-    plt.bar(ind, b3b5, width, color='cornflowerblue', label='$Sm_{\\beta 3, \\beta 5}$')
-    plt.bar(ind + width, b, width,color='brown', label='$Sm_\\beta$')
+    width = 0.15
+
+    plt.bar(ind, b3b5, width, color='brown', label='$m_{\\beta 3, \\beta 5}$')
+    plt.bar(ind + width, b, width,color='burlywood', label='$m_\\beta$')
     plt.xticks(ind + width / 2, results['pairs'],rotation =90)
-    plt.title("Pairings' Mean Binding Propensity", fontsize=30)
+    plt.title("Mean Binding Propensity", fontsize=30)
     plt.legend(fontsize=20)
 
 
@@ -175,6 +188,7 @@ for i in first_fram:
 
                 #SE INVECE RISCALI E HAI VALORI POSITIVI E NEGATIVI
                 fig, ax = plt.subplots()
+                set_size(5, 2)
                 ax.set_yticklabels([])
                 ax.set_yticks([])
                 ax.set_xticklabels([])
@@ -190,8 +204,8 @@ for i in first_fram:
                 df_neg.rename(columns=lambda x: '_' + x).plot.area(ax=ax, stacked=True, linewidth=0., color='powderblue', legend=False)
                 # rescale the y axis
                 ax.set_ylim([df_neg.sum(axis=1).min(), df_pos.sum(axis=1).max()])
-                ax.text(.0, -1.8, '$m_{\\beta 3, \\beta 5}=1.115$', color='black', #.format((round(beta_mean, 3)))
-                bbox=dict(facecolor='white', edgecolor='cornflowerblue', linewidth=4), fontsize=30)
+                #ax.text(.0, -1.8, '$m_{\\beta 3, \\beta 5}=0.887$', color='black', #.format((round(beta_mean, 3)))
+                #bbox=dict(facecolor='white', edgecolor='cornflowerblue', linewidth=4), fontsize=30)
                 plt.title('{}{} vs {}{}'.format(frag,j,fragvs,jj), fontsize=30)
         plt.show()
 
